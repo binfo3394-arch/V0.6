@@ -66,67 +66,7 @@
   const database = getDatabase(app);
   const auth = getAuth(app);
 
-  // ── Subscription Guard ──
-  (function() {
-    const uid  = localStorage.getItem('st_uid');
-    const user = JSON.parse(localStorage.getItem('st_user') || 'null');
-    if (!uid || !user) { window.location.href = 'login.html'; return; }
-    // Show user info in topbar
-    window.addEventListener('DOMContentLoaded', function() {
-      var tb = document.querySelector('.tright');
-      if (tb) {
-        var badge = document.createElement('div');
-        badge.style.cssText = 'font-size:11px;background:rgba(108,99,255,0.15);color:var(--primary);padding:5px 10px;border-radius:8px;display:flex;align-items:center;gap:6px';
-        badge.innerHTML = '<span style="font-size:14px">' + (user.plan==='basic'?'🌱':user.plan==='pro'?'🚀':'🏢') + '</span><span><strong>' + (user.name||'User') + '</strong> · ' + (user.plan||'') + '</span>';
-        tb.insertBefore(badge, tb.firstChild);
-        // Logout button
-        var lbtn = document.createElement('button');
-        lbtn.textContent = '🚪';
-        lbtn.title = 'Logout';
-        lbtn.style.cssText = 'background:rgba(255,23,68,0.12);border:1px solid rgba(255,23,68,0.3);color:var(--danger);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:14px';
-        lbtn.onclick = function() {
-          if (confirm('Logout?')) {
-            signOut(auth).catch(function(){});
-            localStorage.removeItem('st_uid');
-            localStorage.removeItem('st_user');
-            window.location.href = 'login.html';
-          }
-        };
-        tb.appendChild(lbtn);
-      }
-    });
-    // Verify with Firebase (live check)
-    onAuthStateChanged(auth, function(firebaseUser) {
-      if (!firebaseUser) {
-        localStorage.removeItem('st_uid');
-        localStorage.removeItem('st_user');
-        window.location.href = 'login.html';
-        return;
-      }
-      get(ref(database, 'users/' + firebaseUser.uid)).then(function(snap) {
-        if (!snap.exists()) { window.location.href = 'login.html'; return; }
-        var u = snap.val();
-        if (u.status !== 'active') {
-          alert('⚠️ Account suspended or pending. Contact admin.');
-          signOut(auth).catch(function(){});
-          localStorage.removeItem('st_uid'); localStorage.removeItem('st_user');
-          window.location.href = 'login.html';
-          return;
-        }
-        if (u.subscriptionExpiry < Date.now()) {
-          alert('⚠️ Subscription expired! Contact admin to renew.');
-          signOut(auth).catch(function(){});
-          localStorage.removeItem('st_uid'); localStorage.removeItem('st_user');
-          window.location.href = 'login.html';
-          return;
-        }
-        // Override Firebase data path with user-specific path
-        window._userUID = firebaseUser.uid;
-        // Update pos-data path to be user-specific
-        window._posDataRef = 'pos-data-' + firebaseUser.uid;
-      }).catch(function() {});
-    });
-  })();
+
 
   // ── Firebase sync status indicator ──
   function setFBStatus(text, color) {
