@@ -76,6 +76,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 .t-item .st{font-size:12px;padding:2px}
 .t-item .st.f{color:var(--cyan)}
 .t-item .st.m{color:#444}
+.t-item .st.u{color:var(--gold)}
 
 /* Modal */
 #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);backdrop-filter:blur(4px)}
@@ -135,6 +136,37 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 /* Heading cone */
 .heading-cone{fill:rgba(0,170,255,.15);stroke:rgba(0,170,255,.4);stroke-width:1}
 
+/* ===== NAVIGATION PANEL ===== */
+#navPanel{position:absolute;top:90px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(5,5,20,.92);border:1px solid rgba(0,255,136,.3);border-radius:12px;padding:8px 14px;backdrop-filter:blur(8px);display:none;min-width:200px;text-align:center;pointer-events:auto;box-shadow:0 0 20px rgba(0,255,136,.1)}
+#navPanel.show{display:block}
+#navPanel .ntarget{font-size:11px;color:var(--cyan);display:flex;align-items:center;gap:6px;justify-content:center}
+#navPanel .ntarget .nico{font-size:16px}
+#navPanel .ninfo{display:flex;gap:12px;justify-content:center;margin-top:6px}
+#navPanel .ninfo .nv{font-size:13px;font-weight:700;color:#fff}
+#navPanel .ninfo .nl{font-size:8px;color:#888;text-transform:uppercase}
+#navPanel .ninfo .ni{text-align:center}
+#navPanel .nactions{display:flex;gap:6px;justify-content:center;margin-top:8px}
+#navPanel .nactions button{font-size:10px;padding:3px 12px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+#navPanel .nstop{background:var(--accent);color:#fff}
+#navPanel .nstreet{background:rgba(255,255,255,.1);color:#aaa}
+
+/* ===== COMPASS ROSE ===== */
+#compassRose{position:absolute;bottom:100px;right:10px;z-index:10;width:48px;height:48px;border-radius:50%;background:rgba(5,5,20,.85);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;pointer-events:none;transition:transform .1s;backdrop-filter:blur(4px)}
+#compassRose .north{font-size:12px;font-weight:700;color:var(--accent);position:absolute;top:4px}
+#compassRose .dir{font-size:16px}
+
+/* ===== STREET VIEW OVERLAY ===== */
+#svOverlay{position:fixed;inset:0;z-index:200;display:none;background:#000}
+#svOverlay.show{display:flex;flex-direction:column}
+#svOverlay iframe{flex:1;border:none;width:100%}
+#svOverlay .svbar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(5,5,20,.95);color:#fff}
+#svOverlay .svbar h3{font-size:12px;color:var(--gold)}
+#svOverlay .svbar button{background:var(--accent);border:none;color:#fff;padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer}
+
+/* ===== 50m NEARBY RING ON MAP ===== */
+.nearby-marker{animation:nearbyPulse 1.5s infinite}
+@keyframes nearbyPulse{0%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}100%{opacity:.5;transform:scale(1)}}
+
 @media(min-width:768px){#bottom{max-height:35vh}.hud-title{font-size:14px}.stat .v{font-size:16px}}
 @media(max-height:600px){#bottom{max-height:50vh}#bottom.collapsed{transform:translateY(calc(100% - 35px))}}
 </style>
@@ -166,6 +198,23 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 <!-- GPS Status -->
 <div id="gpsStatus" class="none"><span id="gpsDot"></span><span id="gpsText">GPS: waiting...</span></div>
 
+<!-- Navigation Panel -->
+<div id="navPanel">
+  <div class="ntarget"><span class="nico" id="nIcon">💎</span><span id="nTarget">Select a treasure</span></div>
+  <div class="ninfo">
+    <div class="ni"><div class="nv" id="nDist">0m</div><div class="nl">Distance</div></div>
+    <div class="ni"><div class="nv" id="nBear">N</div><div class="nl">Bearing</div></div>
+    <div class="ni"><div class="nv" id="nAppr">0m</div><div class="nl">Approach</div></div>
+  </div>
+  <div class="nactions">
+    <button class="nstop" id="navStop">✕ Stop Nav</button>
+    <button class="nstreet" id="navStreet">🗺️ Street View</button>
+  </div>
+</div>
+
+<!-- Compass Rose -->
+<div id="compassRose"><span class="north">N</span><span class="dir" id="compassDir">↑</span></div>
+
 <!-- Direction arrow -->
 <div id="dirArrow">🧭</div>
 
@@ -180,6 +229,12 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
     <select class="zonesel" id="zoneSelect"><option value="">-- Select Zone --</option></select>
   </div>
   <div id="list"></div>
+</div>
+
+<!-- Street View Overlay -->
+<div id="svOverlay">
+  <div class="svbar"><h3>🗺️ Street View</h3><button id="svClose">✕ Close</button></div>
+  <iframe id="svFrame" allowfullscreen></iframe>
 </div>
 
 <!-- Modal -->
@@ -267,6 +322,10 @@ let currentZone = null;
 let selectedZoneForList = null;
 let modalTreasure = null;
 let collectedTotal = 0;
+let navTarget = null; // treasure being navigated to
+let navLine = null;   // polyline to target
+let nearbyMarkers = []; // Leaflet markers for 50m treasures
+let streetViewActive = false;
 let achievements = new Set();
 let unlockQueue = [];
 let autoFollow = true;
@@ -440,6 +499,11 @@ function init() {
     if(e.target===e.currentTarget) closeModal();
   });
 
+  // Navigation controls
+  document.getElementById('navStop').addEventListener('click',stopNav);
+  document.getElementById('navStreet').addEventListener('click',openStreetView);
+  document.getElementById('svClose').addEventListener('click',closeStreetView);
+
   // Render
   updateHUD();
   renderZones();
@@ -517,19 +581,44 @@ function render() {
     ctx.shadowBlur = 0;
   }
 
-  // 4. Draw treasures in explored areas
+  // 4. Draw treasures in explored areas + nearby treasures through fog
   const viewBounds = map.getBounds();
   let chestCount = 0;
   for(const t of treasures) {
     if(t.c) continue;
-    if(!isExplored(t.lat,t.lng)) continue;
+    const isExploredT = isExplored(t.lat,t.lng);
+    const isNearby = userPos && getDist(userPos.lat,userPos.lng,t.lat,t.lng) < COLLECT_RADIUS*2;
+
+    // Show if explored OR within 50m proximity (visible through fog)
+    if(!isExploredT && !isNearby) continue;
 
     const p = map.latLngToContainerPoint([t.lat,t.lng]);
     if(p.x < -15 || p.x > W+15 || p.y < -15 || p.y > H+15) continue;
 
     chestCount++;
+
+    // Nearby through-fog effect
+    if(!isExploredT && isNearby) {
+      // Ghostly appearance through fog
+      ctx.globalAlpha = 0.7;
+      ctx.font = '18px serif';
+      ctx.shadowColor = t.ti.color;
+      ctx.shadowBlur = 25;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(t.ti.icon,p.x,p.y);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+
+      // "Nearby" label
+      ctx.font = 'bold 8px sans-serif';
+      ctx.fillStyle = t.ti.color;
+      ctx.textAlign = 'center';
+      ctx.fillText('📍 NEARBY',p.x,p.y+14);
+      continue;
+    }
+
     const icon = t.ti.icon;
-    const isNearby = userPos && getDist(userPos.lat,userPos.lng,t.lat,t.lng) < COLLECT_RADIUS*2;
 
     // Pulsing effect for nearby treasures
     if(isNearby) {
@@ -911,6 +1000,42 @@ function openModal(t) {
     }
   }
 
+  // Navigate button + Street View button
+  // Remove old extra buttons if any
+  const oldExtras = document.querySelectorAll('#modalBox .modal-extra');
+  oldExtras.forEach(e=>e.remove());
+
+  if(!t.c) {
+    const btnWrap = document.createElement('div');
+    btnWrap.className = 'modal-extra';
+    btnWrap.style.cssText = 'display:flex;gap:6px;margin-top:8px;justify-content:center';
+
+    const navBtn = document.createElement('button');
+    navBtn.textContent = '🧭 Navigate';
+    navBtn.style.cssText = 'background:linear-gradient(135deg,#0af,#0ff);border:none;color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;flex:1';
+
+    const svBtn = document.createElement('button');
+    svBtn.textContent = '🗺️ Street View';
+    svBtn.style.cssText = 'background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#aaa;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;flex:1';
+
+    navBtn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      document.getElementById('modal').classList.remove('show');
+      startNav(t);
+    });
+    svBtn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      svTarget = t;
+      openStreetView();
+    });
+
+    btnWrap.appendChild(navBtn);
+    btnWrap.appendChild(svBtn);
+
+    const mBox = document.getElementById('modalBox');
+    mBox.insertBefore(btnWrap, document.getElementById('mBtn').nextSibling);
+  }
+
   document.getElementById('modal').classList.add('show');
 }
 
@@ -1008,8 +1133,12 @@ function showTreasuresForZone(zid, container) {
     return;
   }
 
-  // Sort: uncollected first
-  const sorted = [...zoneTreasures].sort((a,b)=>a.c===b.c?0:a.c?1:-1);
+  // Sort: nearby first, then uncollected
+  const sorted = [...zoneTreasures].sort((a,b)=>{
+    if(a.c!==b.c) return a.c?1:-1;
+    if(userPos) return getDist(a.lat,a.lng,userPos.lat,userPos.lng)-getDist(b.lat,b.lng,userPos.lat,userPos.lng);
+    return 0;
+  });
 
   // Show only first 50 in list for performance, with show more
   const showCount = Math.min(50, sorted.length);
@@ -1017,20 +1146,32 @@ function showTreasuresForZone(zid, container) {
     const t = sorted[i];
     const item = document.createElement('div');
     item.className = 't-item';
-    const distStr = userPos ? Math.round(getDist(userPos.lat,userPos.lng,t.lat,t.lng))+'m' : '';
+    const dist = userPos ? Math.round(getDist(userPos.lat,userPos.lng,t.lat,t.lng)) : 0;
+    const distStr = dist ? dist+'m' : '';
+    const isNear = userPos && dist < COLLECT_RADIUS*2;
+    const explored = isExplored(t.lat,t.lng);
+
     item.innerHTML = `
-      <div class="ico">${t.c?'✅':t.ti.icon}</div>
+      <div class="ico">${t.c?'✅':isNear?'💫':t.ti.icon}</div>
       <div class="inf">
-        <div class="nm">${t.n}</div>
-        <div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>${'★'.repeat(t.d)}</span></div>
+        <div class="nm">${t.n} ${isNear&&!t.c?'<span style="color:var(--cyan);font-size:9px">NEARBY!</span>':''}</div>
+        <div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>${'★'.repeat(t.d)}</span>${explored?'':' <span style="color:#666">❄️ fog</span>'}</div>
       </div>
-      ${distStr ? `<div class="dist">📍${distStr}</div>` : ''}
-      <div class="st ${t.c?'f':'m'}">${t.c?'✅':'⬜'}</div>
+      ${distStr ? `<div class="dist" style="color:${isNear?'var(--cyan)':'#555'}">📍${distStr}</div>` : ''}
+      <div class="st ${t.c?'f':isNear?'u':'m'}">${t.c?'✅':isNear?'💫':'⬜'}</div>
+      ${!t.c ? '<button class="fly-btn" style="background:rgba(0,255,136,.2);border:none;color:var(--cyan);padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer">🧭</button>' : ''}
     `;
     if(!t.c) {
+      const flyBtn = item.querySelector('.fly-btn');
+      if(flyBtn) {
+        flyBtn.addEventListener('click',(e)=>{
+          e.stopPropagation();
+          startNav(t);
+        });
+      }
       item.addEventListener('click',()=>{
-        if(!isExplored(t.lat,t.lng)) {
-          showToast('❄️ This treasure is hidden in fog - explore the area!');
+        if(!explored && !isNear) {
+          showToast('❄️ Hidden in fog - walk nearby to reveal');
           map.flyTo([t.lat,t.lng],14);
           return;
         }
@@ -1157,6 +1298,112 @@ function getDist(lat1,lng1,lat2,lng2) {
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
+
+// =============================================
+// NAVIGATION
+// =============================================
+function startNav(t) {
+  navTarget = t;
+  document.getElementById('navPanel').classList.add('show');
+  document.getElementById('nIcon').textContent = t.ti.icon;
+  document.getElementById('nTarget').textContent = `→ ${t.n} (${t.ti.id})`;
+  updateNav();
+}
+
+function stopNav() {
+  navTarget = null;
+  document.getElementById('navPanel').classList.remove('show');
+  if(navLine) { map.removeLayer(navLine); navLine = null; }
+}
+
+function updateNav() {
+  if(!navTarget || !userPos) return;
+  const t = navTarget;
+  const d = getDist(userPos.lat,userPos.lng,t.lat,t.lng);
+
+  document.getElementById('nDist').textContent = d < 1000 ? `${Math.round(d)}m` : `${(d/1000).toFixed(2)}km`;
+
+  // Bearing calculation
+  const dLng = (t.lng-userPos.lng)*Math.PI/180;
+  const y = Math.sin(dLng)*Math.cos(t.lat*Math.PI/180);
+  const x = Math.cos(userPos.lat*Math.PI/180)*Math.sin(t.lat*Math.PI/180)-Math.sin(userPos.lat*Math.PI/180)*Math.cos(t.lat*Math.PI/180)*Math.cos(dLng);
+  const bearing = (Math.atan2(y,x)*180/Math.PI+360)%360;
+  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  const dir = dirs[Math.round(bearing/45)%8];
+
+  // Show bearing relative to heading for "turn left/right" guidance
+  let approach = '';
+  if(heading >= 0) {
+    const rel = ((bearing - heading) + 540) % 360 - 180;
+    if(Math.abs(rel) < 15) approach = '→ Straight';
+    else if(rel > 0 && rel < 60) approach = '↗ Right';
+    else if(rel > 60) approach = '→ Turn back';
+    else if(rel < 0 && rel > -60) approach = '↖ Left';
+    else approach = '← Turn back';
+  } else {
+    approach = dir;
+  }
+
+  document.getElementById('nBear').textContent = `${dir} ${Math.round(bearing)}°`;
+  document.getElementById('nAppr').textContent = approach;
+
+  // Draw line on map
+  if(navLine) map.removeLayer(navLine);
+  navLine = L.polyline([[userPos.lat,userPos.lng],[t.lat,t.lng]],{
+    color:'#0ff',weight:2,opacity:0.5,dashArray:'6,8',interactive:false
+  }).addTo(map);
+
+  // If within collect range, notify
+  if(d < COLLECT_RADIUS) {
+    showToast(`📦 ${t.n} is right here! Tap to collect`);
+    stopNav();
+    openModal(t);
+  }
+}
+
+// Update navigation every second when active
+setInterval(() => {
+  if(navTarget && userPos) {
+    updateNav();
+    if(streetViewActive) updateStreetView();
+  }
+  // Update compass
+  if(heading >= 0) {
+    const el = document.getElementById('compassRose');
+    el.style.transform = `rotate(${-heading}deg)`;
+  }
+}, 1000);
+
+// =============================================
+// STREET VIEW
+// =============================================
+let svTarget = null;
+function openStreetView() {
+  const t = navTarget || modalTreasure;
+  if(!t) { showToast('Select a treasure first'); return; }
+  svTarget = t;
+  const iframe = document.getElementById('svFrame');
+  const url = `https://www.google.com/maps/embed/v1/streetview?key=&location=${t.lat},${t.lng}&heading=${Math.round(heading||0)}&pitch=10&fov=80`;
+  // Since API key is needed for embed, use the simpler web version
+  iframe.src = `https://maps.google.com/maps?q=${t.lat},${t.lng}&layer=c&cbll=${t.lat},${t.lng}&cbp=11,${Math.round(heading||0)},0,0,0`;
+  document.getElementById('svOverlay').classList.add('show');
+  streetViewActive = true;
+}
+
+function updateStreetView() {
+  if(!streetViewActive || !svTarget) return;
+  const iframe = document.getElementById('svFrame');
+  iframe.src = `https://maps.google.com/maps?q=${svTarget.lat},${svTarget.lng}&layer=c&cbll=${svTarget.lat},${svTarget.lng}&cbp=11,${Math.round(heading||0)},0,0,0`;
+}
+
+function closeStreetView() {
+  document.getElementById('svOverlay').classList.remove('show');
+  document.getElementById('svFrame').src = '';
+  streetViewActive = false;
+  svTarget = null;
+}
+
+
 
 // Pulse nearby treasures every 2s
 setInterval(()=>{
