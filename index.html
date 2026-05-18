@@ -279,7 +279,11 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 <div id="navPanel">
   <div class="nt"><span id="nIcon">💎</span><span id="nTarget">Select treasure</span></div>
   <div class="ni">
-    <div class="nc"><div class="nv" id="nDist">0m</div><div class="nl">Distance</div></div>
+    <div class="nc"><div class="nv" id="nDist">0m</div><div class="nl">Line</div></div>
+    <div class="nc"><div class="nv" id="nRoadDist">-</div><div class="nl">Road</div></div>
+    <div class="nc"><div class="nv" id="nEta">-</div><div class="nl">ETA</div></div>
+  </div>
+  <div class="ni" style="margin-top:2px">
     <div class="nc"><div class="nv" id="nBear">N</div><div class="nl">Bearing</div></div>
     <div class="nc"><div class="nv" id="nAppr">→</div><div class="nl">Guide</div></div>
   </div>
@@ -1257,24 +1261,48 @@ function startTA(){
 // =============================================
 // NAVIGATION
 // =============================================
+let navRoadCoords=null,navRoadDist=0,navRoadDur=0;
+
 function startNav(t){
   navTarget=t;
+  navRoadCoords=null;navRoadDist=0;navRoadDur=0;
   document.getElementById('navPanel').classList.add('show');
   document.getElementById('nIcon').textContent=t.ti.icon;
   document.getElementById('nTarget').textContent=`→ ${t.n}`;
   updateNav();
+  fetchRoute();
 }
 
 function stopNav(){
-  navTarget=null;
+  navTarget=null;navRoadCoords=null;
   document.getElementById('navPanel').classList.remove('show');
   if(navLine){map.removeLayer(navLine);navLine=null}
 }
 
+async function fetchRoute(){
+  if(!navTarget||!userPos)return;
+  const from=`${userPos.lng},${userPos.lat}`;
+  const to=`${navTarget.lng},${navTarget.lat}`;
+  try{
+    const resp=await fetch(`https://router.project-osrm.org/route/v1/driving/${from};${to}?overview=full&geometries=geojson&steps=false`);
+    const data=await resp.json();
+    if(data.code!=='Ok'||!data.routes||!data.routes[0])return;
+    const route=data.routes[0];
+    navRoadCoords=route.geometry.coordinates.map(c=>[c[1],c[0]]);
+    navRoadDist=Math.round(route.distance);
+    navRoadDur=Math.round(route.duration);
+    if(navLine)map.removeLayer(navLine);
+    navLine=L.polyline(navRoadCoords,{color:'#0ff',weight:3,opacity:.7,interactive:false}).addTo(map);
+  }catch(e){/* OSRM fail — fall back to straight line */if(navLine)map.removeLayer(navLine);navLine=null}
+}
+
 function updateNav(){
   if(!navTarget||!userPos)return;
-  const t=navTarget,d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
+  const t=navTarget;
+  const d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
   document.getElementById('nDist').textContent=d<1000?`${Math.round(d)}m`:`${(d/1000).toFixed(2)}km`;
+  document.getElementById('nRoadDist').textContent=navRoadDist>0?navRoadDist<1000?`${navRoadDist}m`:`${(navRoadDist/1000).toFixed(1)}km`:'⟳';
+  document.getElementById('nEta').textContent=navRoadDur>0?`${Math.ceil(navRoadDur/60)}min`:'⟳';
 
   const dLng=(t.lng-userPos.lng)*Math.PI/180;
   const y=Math.sin(dLng)*Math.cos(t.lat*Math.PI/180);
@@ -1296,13 +1324,16 @@ function updateNav(){
   document.getElementById('nBear').textContent=`${dir} ${Math.round(bearing)}°`;
   document.getElementById('nAppr').textContent=approach;
 
-  if(navLine)map.removeLayer(navLine);
-  navLine=L.polyline([[userPos.lat,userPos.lng],[t.lat,t.lng]],{color:'#0ff',weight:2,opacity:.5,dashArray:'6,8',interactive:false}).addTo(map);
+  if(!navRoadCoords&&!navLine){
+    navLine=L.polyline([[userPos.lat,userPos.lng],[t.lat,t.lng]],{color:'#0ff',weight:2,opacity:.5,dashArray:'6,8',interactive:false}).addTo(map);
+  }
 
   if(d<COLLECT_RADIUS){showToast(`📦 ${t.n} is here!`);stopNav();openModal(t)}
 }
 
 setInterval(()=>{if(navTarget&&userPos)updateNav();if(heading>=0)document.getElementById('compassRose').style.transform=`rotate(${-heading}deg)`},1000);
+// Refresh route every 30s (user moves)
+setInterval(()=>{if(navTarget&&userPos&&userPos.lat)fetchRoute()},30000);
 
 // =============================================
 // STREET VIEW
@@ -1428,12 +1459,20 @@ function renderNearby(){
 
   if(near.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#555;font-size:11px">📍 No treasures within 200m<br>Walk around to find more!</div>';return}
 
-  for(const t of near.slice(0,30)){
+  const ranks=['🥇','🥈','🥉'];
+  const rankColors=['rgba(255,215,0,.15)','rgba(192,192,192,.12)','rgba(205,127,50,.1)'];
+  const rankBorders=['rgba(255,215,0,.5)','rgba(192,192,192,.4)','rgba(205,127,50,.3)'];
+
+  for(let idx=0;idx<Math.min(near.length,30);idx++){
+    const t=near[idx];
     const d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
     const item=document.createElement('div');
+    const isTop=idx<3;
     item.className='t-item';
+    if(isTop){item.style.background=rankColors[idx];item.style.border=`1px solid ${rankBorders[idx]}`;item.style.borderRadius='6px'}
     const ex=isExplored(t.lat,t.lng);
-    item.innerHTML=`<div class="ico">${ex?t.ti.icon:'❄️'}</div><div class="if"><div class="nm">${t.n}${!ex?' <span style="color:#666;font-size:8px">fogged</span>':''}</div><div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>⭐${t.d}</span></div></div><div class="dst" style="color:${d<COLLECT_RADIUS?'var(--cyan)':'#555'}">📍${Math.round(d)}m</div><button class="nvbtn">🧭</button>`;
+    const rankLabel=isTop?`<span style="font-size:12px;margin-right:2px">${ranks[idx]}</span>`:'';
+    item.innerHTML=`${rankLabel}<div class="ico">${ex?t.ti.icon:'❄️'}</div><div class="if"><div class="nm">${t.n}${!ex?' <span style="color:#666;font-size:8px">fogged</span>':''}${isTop?` <span style="color:var(--gold);font-size:8px">#${idx+1}</span>`:''}</div><div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>⭐${t.d}</span></div></div><div class="dst" style="color:${d<COLLECT_RADIUS?'var(--cyan)':isTop?'var(--gold)':'#555'};font-weight:${isTop?'700':'400'}">📍${Math.round(d)}m</div><button class="nvbtn" style="${isTop?'background:rgba(0,255,136,.25);color:var(--cyan);font-weight:700':''}">🧭</button>`;
     item.querySelector('.nvbtn').addEventListener('click',e=>{e.stopPropagation();startNav(t)});
     item.addEventListener('click',()=>{if(!ex){showToast('❄️ Fogged - walk nearby');return}openModal(t)});
     list.appendChild(item);
