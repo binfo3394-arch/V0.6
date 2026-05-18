@@ -333,11 +333,92 @@ const ZONES=[
   {id:'hambantota',name:'Hambantota',nameSi:'හම්බන්තොට',lat:6.1333,lng:81.1333,R:.09,icon:'🦁',color:'#f44'},
   {id:'ampara',name:'Ampara',nameSi:'අම්පාර',lat:7.2833,lng:81.6667,R:.08,icon:'🌾',color:'#ff0'},
   {id:'vavuniya',name:'Vavuniya',nameSi:'වවුනියාව',lat:8.7500,lng:80.5000,R:.08,icon:'🌲',color:'#0f0'},
-  {id:'negombo',name:'Negombo',nameSi:'මීගමුව',lat:7.2087,lng:79.8358,R:.08,icon:'🐟',color:'#0af'}
+  {id:'negombo',name:'Negombo',nameSi:'මීගමුව',lat:7.2087,lng:79.8358,R:.08,icon:'🐟',color:'#0af'},
+  {id:'kalpitiya',name:'Kalpitiya',nameSi:'කල්පිටිය',lat:8.230,lng:79.770,R:.10,icon:'🏝️',color:'#0ff'}
 ];
 
 const PREFIXES=['Hidden','Sunken','Lost','Ancient','Royal','Mystic','Crystal','Shadow','Emerald','Crimson','Sacred','Forgotten','Enchanted','Silent','Golden','Silver','Diamond','Velvet','Celestial','Dusk'];
 const SUFFIXES=['Vault','Shrine','Cavern','Grotto','Mound','Peak','Valley','Forest','Lagoon','Cove','Tower','Well','Pool','Falls','Hill','Rock','Cave','Glen','Harbor','Reef'];
+
+// ---- KALPITIYA SPECIFIC ----
+const KALPITIYA_NAMES = [
+  'Kalpitiya Fort','Dutch Bay','Palakudawa Beach','Thalawila Church','St. Anne\'s Shrine',
+  'Kalpitiya Lagoon','Puttalam Lagoon','Kite Surfing Point','Dolphin Watching Bay','Muthurajawela',
+  'Kandakuliya Beach','Wilpattu Junction','Kudawa Fishery','Serakkuliya','Noor Nagar',
+  'Alankuda Beach','Palakudawa Fishery','Dutch Canal Kalpitiya','Kalpitiya Windmill','Kalpitiya Jetty',
+  'Mampuriya Beach','Anawasala','Sooriyawewa Kalpitiya','Mukkuthoduwai','Palakuda',
+  'Kunchukkulam','Pallivasalthurai','Thettathivu','Myliddy Kalpitiya','Kakkapalliya',
+  'Wennappuwa Kalpitiya','Koswatta Kalpitiya','Nallathanniya','Kudawa Kalpitiya','Kalpitiya Dunes',
+  'Palavi Beach','Thalawila Dunes','Vanathavilluwa','Rajakadaluwa','Kudaweliya',
+  'Mampuriya Jetty','Alankuda Reef','Kandakuliya Reef','Dutch Bay Reef','Palakudawa Cove',
+  'Thalawila Point','Kalpitiya Lighthouse','Bar Reef','Dutch Bay Sandbar','Kalpitiya Pier',
+  'Kite School Kalpitiya','Kalpitiya Surf','Palakudawa Sand Dunes','Thalawila Fishery','Kalpitiya Bird Sanctuary',
+  'Kandakuliya Lagoon','Mampuriya Cove','Alankuda Point','Palakudawa Point','Thalawila Jetty',
+  'Kalpitiya Coral Garden','Dutch Bay Turtle Nest','Palakudawa Turtle Beach','Thalawila Turtle Cove','Kalpitiya Marine Sanctuary',
+  'Serakkuliya Point','Noor Nagar Beach','Kudawa Point','Palakuda Lagoon','Kunchukkulam Beach',
+  'Bar Reef Coral Garden','Kalpitiya Seagrass Bay','Dutch Bay Seagrass','Palakudawa Seagrass','Thalawila Seagrass',
+  'Kalpitiya Sandspit','Dutch Bay Spit','Palakudawa Spit','Thalawila Sandspit','Kandakuliya Spit',
+  'Mampuriya Sandbar','Alankuda Sandbar','Palakudawa Rock','Thalawila Rock','Kalpitiya Rock',
+  'Dutch Bay Point','Kandakuliya Point','Mampuriya Point','Alankuda Fishery','Kudawa Fishery Point',
+  'Thalawila Lagoon','Kalpitiya Inner Bay','Dutch Bay Inner','Palakudawa Inner Bay','Thalawila Inner Bay',
+  'Kandakuliya Canal','Kalpitiya Canal','Dutch Canal End','Palakudawa Creek','Thalawila Creek',
+  'Kalpitiya North Beach','Kalpitiya South Beach','Kalpitiya East Coast','Kalpitiya West Beach','Dutch Bay East',
+  'Palakudawa Crescent','Thalawila Crescent','Kandakuliya Crescent','Mampuriya Crescent','Alankuda Crescent',
+  'Kalpitiya Watchtower','Dutch Bay Watch','Palakudawa Watch','Thalawila Watch','Kandakuliya Watch',
+  'Kalpitiya Fisherman Cove','Dutch Bay Fishery','Palakudawa Fisherman','Thalawila Fisherman','Kandakuliya Fishing',
+  'Bar Reef North','Bar Reef South','Bar Reef East','Bar Reef West','Bar Reef Point',
+  'Dutch Bay North Channel','Dutch Bay South Channel','Palakudawa Channel','Thalawila Channel','Kandakuliya Channel',
+  'Kalpitiya Anchorage','Dutch Bay Anchorage','Palakudawa Anchorage','Thalawila Anchorage','Kalpitiya Yacht Point'
+];
+
+function genKalpitiyaTreasures(startId){
+  const all=[];
+  const types=TYPES.map(t=>({...t,reward:Math.round(t.reward*0.3)}));
+  // Area: 8.14-8.30 lat, 79.70-79.80 lng
+  const MIN_LAT=8.14,MAX_LAT=8.30,MIN_LNG=79.70,MAX_LNG=79.80;
+  // 300 treasures: grid + jitter + named locations
+  const gridSize=Math.ceil(Math.sqrt(300))*2; // ~35x35 grid = 1225 points, filter later
+  const latStep=(MAX_LAT-MIN_LAT)/gridSize;
+  const lngStep=(MAX_LNG-MIN_LNG)/gridSize;
+  let id=startId,namedIdx=0;
+
+  // First pass: place named treasures at specific spots
+  for(let i=0;i<100;i++){
+    const name=KALPITIYA_NAMES[namedIdx%KALPITIYA_NAMES.length];
+    namedIdx++;
+    // Distribute around key Kalpitiya landmarks
+    const centers=[
+      [8.230,79.770],[8.200,79.745],[8.180,79.755],[8.215,79.760],[8.240,79.775],
+      [8.190,79.740],[8.225,79.765],[8.170,79.750],[8.235,79.780],[8.205,79.750]
+    ];
+    const c=centers[i%centers.length];
+    const lat=c[0]+(Math.random()-.5)*0.025;
+    const lng=c[1]+(Math.random()-.5)*0.025;
+    if(lat<MIN_LAT||lat>MAX_LAT||lng<MIN_LNG||lng>MAX_LNG)continue;
+    const t=types[Math.random()*types.length|0];
+    all.push({id:id++,z:'kalpitiya',lat,lng,ti:t,n:name,d:1+Math.random()*5|0,c:false,trivia:null});
+  }
+
+  // Second pass: grid fill for remaining 200
+  let placed=0;
+  const suffixes=[' Cove',' Point',' Beach',' Reef',' Spot',' View',' Trail',' Bay'];
+  for(let i=0;i<gridSize&&placed<200;i++){
+    for(let j=0;j<gridSize&&placed<200;j++){
+      const lat=MIN_LAT+(i+.5)*latStep+(Math.random()-.5)*latStep*.6;
+      const lng=MIN_LNG+(j+.5)*lngStep+(Math.random()-.5)*lngStep*.6;
+      if(lat<MIN_LAT||lat>MAX_LAT||lng<MIN_LNG||lng>MAX_LNG)continue;
+      let skip=false;
+      for(const a of all){if(getDist(lat,lng,a.lat,a.lng)<80){skip=true;break}}
+      if(skip)continue;
+      const t=types[Math.random()*types.length|0];
+      const base=KALPITIYA_NAMES[Math.random()*KALPITIYA_NAMES.length|0].split(' ').slice(-1)[0];
+      const n='Kalpitiya '+base+suffixes[Math.random()*suffixes.length|0];
+      all.push({id:id++,z:'kalpitiya',lat,lng,ti:t,n:n,d:1+Math.random()*5|0,c:false,trivia:null});
+      placed++;
+    }
+  }
+  return all;
+}
 const TRIVIA = [
   {q:'Sigiriya was built by which king?',a:['Kashyapa','Dhatusena','Parakramabahu'],c:0},
   {q:'What is the national flower of Sri Lanka?',a:['Blue Water Lily','Red Lotus','Orchid'],c:0},
@@ -371,6 +452,9 @@ function genTreasures(){
     const t=lowTypes[Math.random()*lowTypes.length|0];
     all.push({id:id++,z:nz||'colombo',lat:jlat,lng:jlng,ti:t,n:PREFIXES[Math.random()*PREFIXES.length|0]+' '+SUFFIXES[Math.random()*SUFFIXES.length|0],d:1+Math.random()*5|0,c:false,trivia:Math.random()<.15?TRIVIA[Math.random()*TRIVIA.length|0]:null});
   }
+  // Add 300 Kalpitiya region treasures
+  const kalp=genKalpitiyaTreasures(id);
+  for(const k of kalp)all.push(k);
   return all;
 }
 
