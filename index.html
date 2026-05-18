@@ -275,34 +275,72 @@ let gpsWatchId = null;
 let lastGpsUpdate = 0;
 let gpsAccuracy = Infinity;
 
-const EXPLORE_RADIUS = 120; // meters - fog clears in this radius
-const COLLECT_RADIUS = 35;  // meters - must be this close to collect
-const XP_PER_LEVEL = 500;
+const EXPLORE_RADIUS = 200; // meters - fog clears in this radius
+const COLLECT_RADIUS = 50;  // meters - must be this close to collect
+const XP_PER_LEVEL = 200;
 
 // =============================================
-// GENERATE TREASURES
+// GENERATE TREASURES - ALL SRI LANKA GRID
 // =============================================
+// Rough Sri Lanka coastline polygon for land filtering
+const LK_POLYGON = [
+  [9.84,79.88],[9.82,80.02],[9.80,80.15],[9.78,80.27],[9.70,80.35],
+  [9.55,80.42],[9.35,80.55],[9.20,80.70],[9.00,80.88],[8.80,81.05],
+  [8.60,81.22],[8.45,81.35],[8.25,81.48],[8.00,81.58],[7.75,81.70],
+  [7.50,81.78],[7.25,81.82],[7.00,81.80],[6.80,81.75],[6.55,81.58],
+  [6.35,81.35],[6.20,81.10],[6.10,80.85],[6.00,80.60],[5.94,80.40],
+  [5.95,80.20],[6.00,80.00],[6.10,79.95],[6.30,79.95],[6.50,79.95],
+  [6.70,79.90],[6.90,79.85],[7.10,79.82],[7.35,79.78],[7.60,79.75],
+  [7.85,79.75],[8.05,79.78],[8.20,79.75],[8.40,79.72],[8.60,79.70],
+  [8.80,79.70],[9.00,79.75],[9.20,79.78],[9.40,79.82],[9.60,79.85],
+  [9.75,79.85],[9.84,79.88]
+];
+
+function pointInPolygon(lat, lng) {
+  let inside = false;
+  for(let i=0,j=LK_POLYGON.length-1;i<LK_POLYGON.length;j=i++) {
+    const xi=LK_POLYGON[i][1],yi=LK_POLYGON[i][0];
+    const xj=LK_POLYGON[j][1],yj=LK_POLYGON[j][0];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng<(xj-xi)*(lat-yi)/(yj-yi)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+
 function generateTreasures() {
   const all = [];
   let id = 0;
-  for (const z of ZONES) {
-    const count = 250 + Math.floor(Math.random() * 40);
-    const used = [];
-    for (let i = 0; i < count; i++) {
-      let lat, lng, attempts = 0;
-      do {
-        const a = Math.random() * 2 * Math.PI;
-        const d = Math.sqrt(Math.random()) * z.R;
-        lat = z.lat + d * Math.cos(a);
-        lng = z.lng + d * Math.sin(a);
-        attempts++;
-      } while (attempts < 10 && used.some(u => Math.sqrt((lat-u.lat)**2+(lng-u.lng)**2) < 0.002));
-      used.push({lat,lng});
-      const t = TYPES[Math.floor(Math.random() * TYPES.length)];
+
+  // Grid spacing: ~0.022° ≈ 2.4km for ~12,000 treasures across Sri Lanka
+  const STEP = 0.022;
+  const JITTER = STEP*0.35;
+  const MIN_LAT=5.93, MAX_LAT=9.85;
+  const MIN_LNG=79.68, MAX_LNG=81.88;
+
+  // Reduce rewards for "low points"
+  const lowTypes = TYPES.map(t=>({...t,reward:Math.round(t.reward*0.3)}));
+
+  for(let lat=MIN_LAT; lat<=MAX_LAT; lat+=STEP) {
+    for(let lng=MIN_LNG; lng<=MAX_LNG; lng+=STEP) {
+      // Jitter
+      const jlat = lat + (Math.random()-0.5)*JITTER;
+      const jlng = lng + (Math.random()-0.5)*JITTER;
+
+      // Skip if not on Sri Lanka landmass
+      if(!pointInPolygon(jlat, jlng)) continue;
+
+      // Determine which zone this belongs to (for zone UI)
+      let nearestZone = null, nearDist = Infinity;
+      for(const z of ZONES) {
+        const d = getDist(jlat, jlng, z.lat, z.lng);
+        if(d < nearDist) { nearDist=d; nearestZone=z.id; }
+      }
+
+      const t = lowTypes[Math.floor(Math.random()*lowTypes.length)];
       const p = PREFIXES[Math.floor(Math.random()*PREFIXES.length)];
       const s = SUFFIXES[Math.floor(Math.random()*SUFFIXES.length)];
       all.push({
-        id:id++,z:z.id,lat,lng,ti:t,
+        id:id++, z:nearestZone||'colombo', lat:jlat, lng:jlng, ti:t,
         n:`${p} ${s}`,
         d:1+Math.floor(Math.random()*5),
         c:false
@@ -543,23 +581,8 @@ function addExplored(lat,lng) {
 }
 
 function isZoneUnlocked(zid) {
-  // Home zone (where user is) is always unlocked
-  if(currentZone === zid) return true;
-  // Check if any collected treasure in this zone
-  const collected = treasures.filter(t=>t.c && t.z===zid);
-  if(collected.length >= 3) return true;
-  // Check connected zones
-  if(currentZone) {
-    const cz = ZONES.find(z=>z.id===currentZone);
-    if(cz && cz.connections.includes(zid)) {
-      // Connected zones unlocked at 20% collection in current zone
-      const curZ = ZONES.find(z=>z.id===currentZone);
-      const total = treasures.filter(t=>t.z===currentZone);
-      const found = total.filter(t=>t.c);
-      if(total.length > 0 && found.length/total.length >= 0.2) return true;
-    }
-  }
-  return false;
+  // All zones unlocked by default - treasures are everywhere!
+  return true;
 }
 
 // =============================================
@@ -1029,43 +1052,40 @@ function showTreasuresForZone(zid, container) {
 // ACHIEVEMENTS & UNLOCKS
 // =============================================
 function checkAchievements() {
-  if(collectedTotal >= 10 && !achievements.has('10')) {
-    achievements.add('10'); showAchievement('🎯','Collected 10 treasures!'); save();
-  }
   if(collectedTotal >= 50 && !achievements.has('50')) {
-    achievements.add('50'); showAchievement('🏆','Collected 50 treasures!'); save();
+    achievements.add('50'); showAchievement('🎯','Collected 50 treasures!'); save();
   }
-  if(collectedTotal >= 100 && !achievements.has('100')) {
-    achievements.add('100'); showAchievement('💎','Collected 100 treasures!'); save();
-  }
-  if(collectedTotal >= 250 && !achievements.has('250')) {
-    achievements.add('250'); showAchievement('👑','Collected 250 treasures!'); save();
+  if(collectedTotal >= 200 && !achievements.has('200')) {
+    achievements.add('200'); showAchievement('🏆','Collected 200 treasures!'); save();
   }
   if(collectedTotal >= 500 && !achievements.has('500')) {
-    achievements.add('500'); showAchievement('🌟','Collected 500 treasures!'); save();
+    achievements.add('500'); showAchievement('💎','Collected 500 treasures!'); save();
   }
-  if(level >= 5 && !achievements.has('l5')) {
-    achievements.add('l5'); showAchievement('⭐','Reached Level 5!'); save();
+  if(collectedTotal >= 1000 && !achievements.has('1000')) {
+    achievements.add('1000'); showAchievement('👑','Collected 1000 treasures!'); save();
+  }
+  if(collectedTotal >= 2500 && !achievements.has('2500')) {
+    achievements.add('2500'); showAchievement('🌟','Collected 2500 treasures!'); save();
   }
   if(level >= 10 && !achievements.has('l10')) {
-    achievements.add('l10'); showAchievement('🔥','Reached Level 10!'); save();
+    achievements.add('l10'); showAchievement('⭐','Reached Level 10!'); save();
+  }
+  if(level >= 25 && !achievements.has('l25')) {
+    achievements.add('l25'); showAchievement('🔥','Reached Level 25!'); save();
   }
 
-  // Zone completion
+  // Milestone: each zone has treasures collected (all zones now active)
+  const zoneCounts = {};
   for(const z of ZONES) {
-    const total = treasures.filter(t=>t.z===z.id);
-    const found = total.filter(t=>t.c);
-    const key = 'zone_'+z.id;
-    if(total.length > 0 && found.length/total.length >= 0.5 && !achievements.has(key+'_50')) {
-      achievements.add(key+'_50');
-      showAchievement('🗺️',`${z.name} 50% explored!`);
-      save();
-    }
-    if(found.length === total.length && !achievements.has(key+'_100')) {
-      achievements.add(key+'_100');
-      queueUnlock(z);
-      save();
-    }
+    const f = treasures.filter(t=>t.c && t.z===z.id).length;
+    if(f >= 100) zoneCounts[z.id] = '100';
+    else if(f >= 50) zoneCounts[z.id] = '50';
+    else if(f >= 10) zoneCounts[z.id] = '10';
+  }
+  // Check zone milestones
+  const zoneM = Object.keys(zoneCounts).length;
+  if(zoneM >= 18 && !achievements.has('allZones10')) {
+    achievements.add('allZones10'); showAchievement('🗺️','Treasures in all 18 zones!'); save();
   }
 }
 
