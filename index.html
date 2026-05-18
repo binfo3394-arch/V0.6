@@ -3,275 +3,305 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>නිදන් Hunt! - Advanced</title>
+<title>නිදන් Hunt! - Ultimate</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--primary:#ff6b35;--gold:#ffd700;--dark:#0a0a1e;--accent:#e94560;--cyan:#00ff88;--bg:linear-gradient(135deg,#0a0a1e,#1a1a3e)}
+:root{--primary:#ff6b35;--gold:#ffd700;--dark:#0a0a1e;--accent:#e94560;--cyan:#00ff88;--cyan2:#0af}
 body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflow:hidden;height:100vh;width:100vw;position:fixed;touch-action:none}
 #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0}
 #fogCanvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
-.leaflet-control-zoom{display:none!important}
-.leaflet-attribution-flag,.leaflet-control-attribution{display:none!important}
-
+.leaflet-control-zoom,.leaflet-control-attribution{display:none!important}
 /* HUD */
-#hud{position:absolute;top:0;left:0;right:0;z-index:10;padding:6px 10px;background:linear-gradient(180deg,rgba(5,5,20,.95) 0%,transparent 100%);pointer-events:none}
+#hud{position:absolute;top:0;left:0;right:0;z-index:10;padding:4px 8px;background:linear-gradient(180deg,rgba(5,5,20,.96) 0%,transparent 100%);pointer-events:none}
 #hud>*{pointer-events:auto}
-.hud-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.hud-title{font-size:12px;font-weight:800;color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,.3);display:flex;align-items:center;gap:5px;letter-spacing:.5px}
-.hud-title .v{font-size:7px;background:var(--accent);padding:1px 5px;border-radius:8px;color:#fff}
-.hud-stats{display:flex;gap:5px}
-.stat{background:rgba(0,0,0,.8);border:1px solid rgba(255,215,0,.2);border-radius:6px;padding:3px 8px;text-align:center;min-width:44px}
-.stat .v{font-size:14px;font-weight:700;color:var(--gold);line-height:1.2}
-.stat .l{font-size:7px;text-transform:uppercase;color:#888;letter-spacing:.3px}
-
-/* Zone Progress Bar */
-#zoneBar{position:absolute;top:52px;left:10px;right:10px;z-index:10;background:rgba(5,5,20,.85);border:1px solid rgba(255,215,0,.15);border-radius:10px;padding:6px 10px;backdrop-filter:blur(5px);pointer-events:none}
-#zoneBar .zname{font-size:10px;color:var(--gold);display:flex;justify-content:space-between}
-#zoneBar .zname span{color:#aaa;font-size:9px}
-#zoneBar .track{height:4px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:4px;overflow:hidden}
-#zoneBar .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--primary));border-radius:3px;transition:width .5s ease;min-width:1%}
-
-/* Scan Collection Ring */
-#collectRing{position:absolute;bottom:50%;left:50%;transform:translate(-50%,50%);z-index:10;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#0f8,#0a6);border:2px solid var(--cyan);box-shadow:0 0 20px rgba(0,255,136,.4),inset 0 0 15px rgba(0,255,136,.2);display:none;align-items:center;justify-content:center;font-size:16px;color:#fff;animation:collectPulse 1.5s infinite;pointer-events:none}
-#collectRing.show{display:flex}
-@keyframes collectPulse{0%{box-shadow:0 0 10px rgba(0,255,136,.3)}50%{box-shadow:0 0 30px rgba(0,255,136,.7),0 0 60px rgba(0,255,136,.2)}100%{box-shadow:0 0 10px rgba(0,255,136,.3)}}
-
+.hud-row{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.hud-title{font-size:11px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:4px;text-shadow:0 0 8px rgba(255,215,0,.2)}
+.hud-title .v{font-size:7px;background:var(--accent);padding:0 5px;border-radius:8px;color:#fff}
+.hud-stats{display:flex;gap:3px}
+.stat{background:rgba(0,0,0,.8);border:1px solid rgba(255,215,0,.15);border-radius:5px;padding:2px 6px;text-align:center;min-width:38px}
+.stat .v{font-size:12px;font-weight:700;color:var(--gold);line-height:1.2}
+.stat .l{font-size:6px;text-transform:uppercase;color:#777;letter-spacing:.2px}
+/* Zone Bar */
+#zoneBar{position:absolute;top:46px;left:6px;right:60px;z-index:10;background:rgba(5,5,20,.82);border:1px solid rgba(255,215,0,.12);border-radius:8px;padding:4px 8px;pointer-events:none}
+#zoneBar .zname{font-size:9px;color:var(--gold);display:flex;justify-content:space-between}
+#zoneBar .zname span{color:#999;font-size:8px}
+#zoneBar .track{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:3px;overflow:hidden}
+#zoneBar .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--primary));border-radius:2px;transition:width .5s;min-width:1%}
+/* GPS Status */
+#gpsStatus{position:absolute;top:46px;right:6px;z-index:10;font-size:8px;padding:1px 6px;border-radius:6px;display:flex;align-items:center;gap:3px;pointer-events:none;transition:.3s}
+#gpsStatus.good{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.25);color:var(--cyan)}
+#gpsStatus.fair{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.25);color:var(--gold)}
+#gpsStatus.poor{background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.25);color:#f44}
+#gpsStatus.none{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#555}
+#gpsDot{width:5px;height:5px;border-radius:50%;display:inline-block}
+#gpsStatus.good #gpsDot{background:var(--cyan);box-shadow:0 0 5px var(--cyan)}
+#gpsStatus.fair #gpsDot{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+#gpsStatus.poor #gpsDot{background:#f44;box-shadow:0 0 5px #f44}
+#gpsStatus.none #gpsDot{background:#555}
+/* Power-up Bar */
+#puBar{position:absolute;top:72px;left:6px;right:6px;z-index:10;display:flex;gap:4px;justify-content:center;pointer-events:none}
+#puBar button{pointer-events:auto;font-size:9px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(5,5,20,.8);color:#ccc;cursor:pointer;transition:.2s;white-space:nowrap;backdrop-filter:blur(4px)}
+#puBar button:active{transform:scale(.95)}
+#puBar button .badge{font-size:7px;opacity:.6;display:block}
+#puBar button.active{border-color:var(--gold);color:var(--gold);box-shadow:0 0 10px rgba(255,215,0,.2)}
+#puBar button:disabled{opacity:.3;cursor:default}
+/* Nav Panel */
+#navPanel{position:absolute;top:100px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(5,5,20,.94);border:1px solid rgba(0,255,136,.25);border-radius:10px;padding:6px 12px;display:none;min-width:180px;text-align:center;pointer-events:auto;backdrop-filter:blur(6px)}
+#navPanel.show{display:block}
+#navPanel .nt{font-size:10px;color:var(--cyan);display:flex;align-items:center;gap:5px;justify-content:center}
+#navPanel .ni{display:flex;gap:8px;justify-content:center;margin-top:4px}
+#navPanel .ni .nv{font-size:12px;font-weight:700;color:#fff}
+#navPanel .ni .nl{font-size:7px;color:#777;text-transform:uppercase}
+#navPanel .ni .nc{text-align:center}
+#navPanel .na{display:flex;gap:4px;justify-content:center;margin-top:6px}
+#navPanel .na button{font-size:9px;padding:2px 10px;border-radius:5px;border:none;cursor:pointer}
+/* Compass */
+#compassRose{position:absolute;bottom:92px;right:6px;z-index:10;width:40px;height:40px;border-radius:50%;background:rgba(5,5,20,.85);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;pointer-events:none;transition:transform .15s;backdrop-filter:blur(4px)}
+#compassRose .n{font-size:10px;font-weight:700;color:var(--accent);position:absolute;top:3px}
+#compassRose .d{font-size:14px}
 /* Bottom Sheet */
-#bottom{position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(0deg,rgba(5,5,20,.98) 0%,rgba(10,10,30,.92) 100%);border-top:1px solid rgba(255,215,0,.2);border-radius:16px 16px 0 0;max-height:42vh;display:flex;flex-direction:column;transition:transform .35s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(12px)}
-#bottom.collapsed{transform:translateY(calc(100% - 42px))}
-#bottom .h{width:36px;height:3px;background:var(--gold);border-radius:3px;margin:6px auto;opacity:.5;cursor:pointer}
-#bottom .hdr{display:flex;justify-content:space-between;align-items:center;padding:2px 12px 6px;border-bottom:1px solid rgba(255,215,0,.08)}
-#bottom .hdr h3{font-size:12px;color:var(--gold);display:flex;align-items:center;gap:5px}
-#bottom .hdr h3 .b{background:var(--accent);color:#fff;font-size:8px;padding:0 6px;border-radius:8px}
-#bottom .hdr .zonesel{font-size:9px;padding:2px 8px;border-radius:10px;border:1px solid rgba(255,215,0,.2);background:transparent;color:#aaa;cursor:pointer}
-#bottom .hdr .zonesel:focus{outline:none;color:var(--gold);border-color:var(--gold)}
-#list{overflow-y:auto;flex:1;padding:4px 8px 10px;-webkit-overflow-scrolling:touch}
+#bottom{position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(0deg,rgba(5,5,20,.98) 0%,rgba(10,10,30,.92) 100%);border-top:1px solid rgba(255,215,0,.15);border-radius:14px 14px 0 0;max-height:40vh;display:flex;flex-direction:column;transition:transform .3s;backdrop-filter:blur(10px)}
+#bottom.collapsed{transform:translateY(calc(100% - 38px))}
+#bottom .h{width:32px;height:3px;background:var(--gold);border-radius:3px;margin:5px auto;opacity:.4;cursor:pointer}
+#bottom .hdr{display:flex;justify-content:space-between;align-items:center;padding:1px 10px 4px;border-bottom:1px solid rgba(255,215,0,.06)}
+#bottom .hdr h3{font-size:11px;color:var(--gold);display:flex;align-items:center;gap:4px}
+#bottom .hdr h3 .b{background:var(--accent);color:#fff;font-size:7px;padding:0 5px;border-radius:6px}
+#bottom .hdr .tabs{display:flex;gap:2px}
+#bottom .hdr .tabs button{font-size:8px;padding:2px 7px;border-radius:8px;border:1px solid rgba(255,215,0,.15);background:transparent;color:#999;cursor:pointer;transition:.15s;white-space:nowrap}
+#bottom .hdr .tabs button.active{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+#bottom .hdr .tabs button:active{opacity:.7}
+#list{overflow-y:auto;flex:1;padding:3px 6px 8px;-webkit-overflow-scrolling:touch}
 #list::-webkit-scrollbar{width:2px}
 #list::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
-
-/* Mini zone cards in bottom sheet */
-.zone-card{display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:3px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);cursor:pointer;transition:.2s}
-.zone-card:active{background:rgba(255,215,0,.12);transform:scale(.98)}
-.zone-card .ico{font-size:18px;width:28px;text-align:center}
-.zone-card .info{flex:1;min-width:0}
-.zone-card .info .zn{font-size:12px;font-weight:700;color:#fff;display:flex;justify-content:space-between}
-.zone-card .info .zn .pct{font-size:10px;color:var(--gold)}
-.zone-card .info .bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:4px;overflow:hidden}
-.zone-card .info .bar .f{height:100%;border-radius:2px;transition:width .5s}
-.zone-card .lock{font-size:14px;padding:4px}
-.zone-card .lock.l{color:#555}
-.zone-card .lock.u{color:var(--cyan)}
-
-/* Treasure items in list */
-.t-item{display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:2px;border-radius:6px;background:rgba(255,255,255,.03);cursor:pointer;transition:.15s}
-.t-item:active{background:rgba(255,215,0,.1)}
-.t-item .ico{font-size:16px;width:24px;text-align:center}
-.t-item .inf{flex:1;min-width:0}
-.t-item .inf .nm{font-size:11px;font-weight:600;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.t-item .inf .sb{font-size:9px;color:#777;display:flex;gap:6px}
-.t-item .dist{font-size:9px;color:#555;white-space:nowrap}
-.t-item .st{font-size:12px;padding:2px}
+/* Zone cards */
+.z-card{display:flex;align-items:center;gap:6px;padding:5px 6px;margin-bottom:2px;border-radius:6px;background:rgba(255,255,255,.03);cursor:pointer;transition:.15s}
+.z-card:active{background:rgba(255,215,0,.1);transform:scale(.98)}
+.z-card .ico{font-size:16px;width:22px;text-align:center}
+.z-card .info{flex:1;min-width:0}
+.z-card .info .zn{font-size:11px;font-weight:600;color:#eee;display:flex;justify-content:space-between}
+.z-card .info .zn .p{font-size:9px;color:var(--gold)}
+.z-card .info .b{height:2px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:3px;overflow:hidden}
+.z-card .info .b .f{height:100%;border-radius:2px;transition:width .4s}
+/* Treasure items */
+.t-item{display:flex;align-items:center;gap:6px;padding:5px 6px;margin-bottom:1px;border-radius:5px;background:rgba(255,255,255,.03);cursor:pointer;transition:.1s}
+.t-item:active{background:rgba(255,215,0,.08)}
+.t-item .ico{font-size:14px;width:20px;text-align:center}
+.t-item .if{flex:1;min-width:0}
+.t-item .if .nm{font-size:10px;font-weight:500;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-item .if .sb{font-size:8px;color:#666;display:flex;gap:4px}
+.t-item .dst{font-size:8px;color:#555;white-space:nowrap}
+.t-item .st{font-size:11px;padding:1px}
 .t-item .st.f{color:var(--cyan)}
 .t-item .st.m{color:#444}
 .t-item .st.u{color:var(--gold)}
-
+.t-item .nvbtn{background:rgba(0,255,136,.15);border:none;color:var(--cyan);padding:1px 6px;border-radius:3px;font-size:9px;cursor:pointer}
 /* Modal */
-#modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);backdrop-filter:blur(4px)}
+#modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(3px)}
 #modal.show{display:flex}
-#modalBox{background:linear-gradient(145deg,#12122a,#1a1a3e);border:1px solid var(--gold);border-radius:18px;padding:22px;max-width:320px;width:88%;text-align:center;position:relative;animation:mIn .35s cubic-bezier(.34,1.56,.64,1)}
+#modalBox{background:linear-gradient(145deg,#0e0e24,#16163a);border:1px solid var(--gold);border-radius:16px;padding:18px;max-width:300px;width:86%;text-align:center;position:relative;animation:mIn .35s cubic-bezier(.34,1.56,.64,1)}
 @keyframes mIn{0%{transform:scale(.4) translateY(30px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
-#modalBox .icon{font-size:56px;margin-bottom:6px}
-#modalBox h2{font-size:18px;color:var(--gold);margin-bottom:2px}
-#modalBox .tag{display:inline-block;padding:1px 10px;border-radius:8px;font-size:10px;margin-bottom:6px;font-weight:700}
-#modalBox .desc{font-size:12px;color:#aaa;margin-bottom:8px;line-height:1.4}
-#modalBox .meta{font-size:9px;color:#555;margin-bottom:10px}
-#modalBox .rw{font-size:22px;color:var(--gold);margin-bottom:4px}
-#modalBox .nrp{font-size:10px;color:#888;margin-bottom:12px}
-#modalBox .act{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;padding:10px 28px;border-radius:25px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(233,69,96,.3);transition:.2s}
-#modalBox .act:active{transform:scale(.95);opacity:.8}
-
-/* Unlock notification */
-#unlockNotify{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;background:rgba(5,5,20,.95);border:2px solid var(--gold);border-radius:16px;padding:20px 28px;text-align:center;opacity:0;transition:all .4s;pointer-events:none;max-width:80%}
-#unlockNotify.show{opacity:1;top:45%}
-#unlockNotify .ico{font-size:40px;margin-bottom:6px}
-#unlockNotify h3{font-size:16px;color:var(--gold);margin-bottom:4px}
-#unlockNotify p{font-size:12px;color:#aaa}
-
-/* Toast */
-#toast{position:fixed;top:55px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(5,5,20,.92);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--gold);opacity:0;transition:all .35s;pointer-events:none;text-align:center;max-width:85%;backdrop-filter:blur(4px)}
-#toast.show{opacity:1;top:62px}
-
-/* Achievement popup */
-#achieve{position:fixed;top:55px;right:10px;z-index:60;background:rgba(5,5,20,.92);border:1px solid var(--gold);border-radius:10px;padding:8px 14px;font-size:11px;color:var(--gold);opacity:0;transition:all .4s;pointer-events:none;max-width:200px;backdrop-filter:blur(4px)}
-#achieve.show{opacity:1}
-#achieve .aico{font-size:18px;display:block;text-align:center}
-
-/* User dot */
-.user-dot{width:12px;height:12px;background:#0af;border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px rgba(0,170,255,.6);animation:uPulse 2s infinite}
-@keyframes uPulse{0%{box-shadow:0 0 12px rgba(0,170,255,.6)}50%{box-shadow:0 0 24px rgba(0,170,255,.9)}100%{box-shadow:0 0 12px rgba(0,170,255,.6)}}
-
-/* Direction indicator */
-#dirArrow{position:absolute;bottom:calc(50% + 30px);left:50%;transform:translateX(-50%);z-index:10;font-size:28px;opacity:0;transition:opacity .5s;pointer-events:none;text-shadow:0 0 15px rgba(255,215,0,.5)}
-#dirArrow.show{opacity:1}
-
-/* GPS Status */
-#gpsStatus{position:absolute;top:52px;right:10px;z-index:10;font-size:9px;padding:2px 8px;border-radius:8px;display:flex;align-items:center;gap:4px;pointer-events:none;transition:.3s}
-#gpsStatus.good{background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.3);color:var(--cyan)}
-#gpsStatus.fair{background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);color:var(--gold)}
-#gpsStatus.poor{background:rgba(255,68,68,.15);border:1px solid rgba(255,68,68,.3);color:#f44}
-#gpsStatus.none{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#666}
-#gpsDot{width:6px;height:6px;border-radius:50%;display:inline-block}
-#gpsStatus.good #gpsDot{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
-#gpsStatus.fair #gpsDot{background:var(--gold);box-shadow:0 0 6px var(--gold)}
-#gpsStatus.poor #gpsDot{background:#f44;box-shadow:0 0 6px #f44}
-#gpsStatus.none #gpsDot{background:#666}
-
-/* Accuracy ring on map */
-.accuracy-ring{fill:rgba(0,170,255,.06);stroke:rgba(0,170,255,.2);stroke-width:1;animation:accPulse 3s infinite}
-@keyframes accPulse{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
-
-/* Heading cone */
-.heading-cone{fill:rgba(0,170,255,.15);stroke:rgba(0,170,255,.4);stroke-width:1}
-
-/* ===== NAVIGATION PANEL ===== */
-#navPanel{position:absolute;top:90px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(5,5,20,.92);border:1px solid rgba(0,255,136,.3);border-radius:12px;padding:8px 14px;backdrop-filter:blur(8px);display:none;min-width:200px;text-align:center;pointer-events:auto;box-shadow:0 0 20px rgba(0,255,136,.1)}
-#navPanel.show{display:block}
-#navPanel .ntarget{font-size:11px;color:var(--cyan);display:flex;align-items:center;gap:6px;justify-content:center}
-#navPanel .ntarget .nico{font-size:16px}
-#navPanel .ninfo{display:flex;gap:12px;justify-content:center;margin-top:6px}
-#navPanel .ninfo .nv{font-size:13px;font-weight:700;color:#fff}
-#navPanel .ninfo .nl{font-size:8px;color:#888;text-transform:uppercase}
-#navPanel .ninfo .ni{text-align:center}
-#navPanel .nactions{display:flex;gap:6px;justify-content:center;margin-top:8px}
-#navPanel .nactions button{font-size:10px;padding:3px 12px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
-#navPanel .nstop{background:var(--accent);color:#fff}
-#navPanel .nstreet{background:rgba(255,255,255,.1);color:#aaa}
-
-/* ===== COMPASS ROSE ===== */
-#compassRose{position:absolute;bottom:100px;right:10px;z-index:10;width:48px;height:48px;border-radius:50%;background:rgba(5,5,20,.85);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;pointer-events:none;transition:transform .1s;backdrop-filter:blur(4px)}
-#compassRose .north{font-size:12px;font-weight:700;color:var(--accent);position:absolute;top:4px}
-#compassRose .dir{font-size:16px}
-
-/* ===== STREET VIEW OVERLAY ===== */
+#modalBox .mi{font-size:44px;margin-bottom:4px}
+#modalBox h2{font-size:16px;color:var(--gold);margin-bottom:2px}
+#modalBox .tag{display:inline-block;padding:1px 8px;border-radius:6px;font-size:9px;margin-bottom:4px;font-weight:700}
+#modalBox .desc{font-size:11px;color:#aaa;margin-bottom:6px;line-height:1.3}
+#modalBox .meta{font-size:8px;color:#555;margin-bottom:8px}
+#modalBox .rw{font-size:18px;color:var(--gold);margin-bottom:2px}
+#modalBox .nrp{font-size:9px;color:#888;margin-bottom:10px}
+#modalBox .actions{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+#modalBox .actions button{padding:7px 14px;border-radius:18px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:.15s}
+#modalBox .actions button:active{transform:scale(.95)}
+/* Profile */
+#profile{position:fixed;inset:0;z-index:100;display:none;background:rgba(5,5,20,.97);backdrop-filter:blur(8px);overflow-y:auto;padding:20px}
+#profile.show{display:block}
+#profile .ph{font-size:18px;color:var(--gold);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+#profile .ph button{background:var(--accent);border:none;color:#fff;padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer}
+#profile .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+#profile .pc{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.1);border-radius:10px;padding:10px;text-align:center}
+#profile .pc .pv{font-size:20px;font-weight:700;color:var(--gold)}
+#profile .pc .pl{font-size:8px;color:#888;text-transform:uppercase}
+#profile .psec{margin-bottom:12px}
+#profile .psec h4{font-size:11px;color:var(--gold);margin-bottom:6px;border-bottom:1px solid rgba(255,215,0,.1);padding-bottom:4px}
+#profile .psec .row{display:flex;justify-content:space-between;font-size:10px;color:#aaa;padding:2px 0}
+#profile .psec .row .v{color:#fff;font-weight:600}
+#profile .coll-item{display:inline-block;font-size:18px;margin:3px;padding:4px;background:rgba(255,255,255,.04);border-radius:6px;position:relative}
+#profile .coll-item.dim{opacity:.3}
+#profile .coll-item .cnt{position:absolute;bottom:-2px;right:-2px;font-size:8px;background:var(--gold);color:var(--dark);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700}
+/* Guest Book */
+#guestbook{position:fixed;inset:0;z-index:100;display:none;background:rgba(5,5,20,.97);backdrop-filter:blur(8px);padding:20px;overflow-y:auto}
+#guestbook.show{display:block}
+#guestbook .gh{font-size:16px;color:var(--gold);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+#guestbook .gh button{background:var(--accent);border:none;color:#fff;padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer}
+#guestbook .ge{background:rgba(255,255,255,.04);border-radius:8px;padding:8px;margin-bottom:6px}
+#guestbook .ge .gd{font-size:9px;color:#888}
+#guestbook .ge .gn{font-size:11px;color:#fff}
+/* Street View */
 #svOverlay{position:fixed;inset:0;z-index:200;display:none;background:#000}
 #svOverlay.show{display:flex;flex-direction:column}
 #svOverlay iframe{flex:1;border:none;width:100%}
-#svOverlay .svbar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(5,5,20,.95);color:#fff}
-#svOverlay .svbar h3{font-size:12px;color:var(--gold)}
-#svOverlay .svbar button{background:var(--accent);border:none;color:#fff;padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer}
-
-/* ===== 50m NEARBY RING ON MAP ===== */
-.nearby-marker{animation:nearbyPulse 1.5s infinite}
-@keyframes nearbyPulse{0%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}100%{opacity:.5;transform:scale(1)}}
-
-@media(min-width:768px){#bottom{max-height:35vh}.hud-title{font-size:14px}.stat .v{font-size:16px}}
-@media(max-height:600px){#bottom{max-height:50vh}#bottom.collapsed{transform:translateY(calc(100% - 35px))}}
+#svOverlay .svb{display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:rgba(5,5,20,.95);color:#fff}
+#svOverlay .svb h3{font-size:11px;color:var(--gold)}
+#svOverlay .svb button{background:var(--accent);border:none;color:#fff;padding:3px 12px;border-radius:5px;font-size:10px;cursor:pointer}
+/* Notifications */
+#toast{position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(5,5,20,.94);border:1px solid rgba(255,215,0,.25);border-radius:8px;padding:6px 14px;font-size:11px;color:var(--gold);opacity:0;transition:all .3s;pointer-events:none;text-align:center;max-width:82%;backdrop-filter:blur(4px)}
+#toast.show{opacity:1;top:58px}
+#achieve{position:fixed;top:52px;right:6px;z-index:60;background:rgba(5,5,20,.94);border:1px solid var(--gold);border-radius:8px;padding:6px 10px;font-size:10px;color:var(--gold);opacity:0;transition:all .35s;pointer-events:none;max-width:180px;backdrop-filter:blur(4px)}
+#achieve.show{opacity:1}
+#achieve .ai{font-size:16px;display:block;text-align:center}
+/* AR View */
+#arOverlay{position:fixed;inset:0;z-index:300;display:none;background:#000}
+#arOverlay.show{display:flex;flex-direction:column}
+#arOverlay video{flex:1;width:100%;object-fit:cover}
+#arOverlay .arb{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:8px 12px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent)}
+#arOverlay .arb button{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;cursor:pointer;backdrop-filter:blur(4px)}
+#arOverlay .arc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;opacity:.6;pointer-events:none;text-shadow:0 0 20px rgba(0,255,136,.5)}
+/* Time Attack overlay */
+#taOverlay{position:fixed;inset:0;z-index:50;display:none;background:rgba(5,5,20,.95);align-items:center;justify-content:center;flex-direction:column}
+#taOverlay.show{display:flex}
+#taOverlay .tat{font-size:48px;font-weight:700;color:var(--gold);margin-bottom:8px}
+#taOverlay .tas{font-size:20px;color:#aaa;margin-bottom:16px}
+#taOverlay .tabtn{background:linear-gradient(135deg,var(--gold),var(--primary));color:var(--dark);border:none;padding:12px 32px;border-radius:25px;font-size:14px;font-weight:700;cursor:pointer}
+#taOverlay .tabtn:active{transform:scale(.95)}
+/* Unlock notify */
+#unlockNotify{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:55;background:rgba(5,5,20,.96);border:2px solid var(--gold);border-radius:14px;padding:16px 24px;text-align:center;opacity:0;transition:all .4s;pointer-events:none;max-width:80%}
+#unlockNotify.show{opacity:1;top:44%}
+#unlockNotify .uico{font-size:36px;margin-bottom:4px}
+#unlockNotify h3{font-size:14px;color:var(--gold);margin-bottom:3px}
+#unlockNotify p{font-size:11px;color:#aaa}
+/* User dot */
+.user-dot{width:10px;height:10px;background:#0af;border:2px solid #fff;border-radius:50%;box-shadow:0 0 10px rgba(0,170,255,.5);animation:uPulse 2s infinite}
+@keyframes uPulse{0%{box-shadow:0 0 10px rgba(0,170,255,.5)}50%{box-shadow:0 0 20px rgba(0,170,255,.8)}100%{box-shadow:0 0 10px rgba(0,170,255,.5)}}
+/* 50m ring */
+#collectRing{position:absolute;bottom:50%;left:50%;transform:translate(-50%,50%);z-index:10;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#0f8,#0a6);border:2px solid var(--cyan);box-shadow:0 0 15px rgba(0,255,136,.3);display:none;align-items:center;justify-content:center;font-size:13px;color:#fff;animation:crPulse 1.5s infinite;pointer-events:none}
+#collectRing.show{display:flex}
+@keyframes crPulse{0%{box-shadow:0 0 10px rgba(0,255,136,.2)}50%{box-shadow:0 0 25px rgba(0,255,136,.5)}100%{box-shadow:0 0 10px rgba(0,255,136,.2)}}
+#dirArrow{position:absolute;bottom:calc(50% + 28px);left:50%;transform:translateX(-50%);z-index:10;font-size:22px;opacity:0;transition:opacity .4s;pointer-events:none;text-shadow:0 0 12px rgba(255,215,0,.4)}
+#dirArrow.show{opacity:1}
+/* Accuracy ring */
+.accuracy-ring{fill:rgba(0,170,255,.05);stroke:rgba(0,170,255,.15);stroke-width:1;animation:accPulse 3s infinite}
+@keyframes accPulse{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
+@media(min-width:768px){#bottom{max-height:32vh}}
+@media(max-height:600px){#bottom{max-height:46vh}#bottom.collapsed{transform:translateY(calc(100% - 32px))}}
 </style>
 </head>
 <body>
-
 <div id="map"></div>
 <canvas id="fogCanvas"></canvas>
 
 <!-- HUD -->
 <div id="hud">
   <div class="hud-row">
-    <div class="hud-title">⚔️ නිදන් Hunt <span class="v">ADV</span></div>
+    <div class="hud-title">⚔️ නිදන් Hunt <span class="v">ULT</span></div>
     <div class="hud-stats">
-      <div class="stat"><div class="v" id="scr">0</div><div class="l">🏆 Score</div></div>
-      <div class="stat"><div class="v" id="fnd">0/0</div><div class="l">📦 Found</div></div>
-      <div class="stat"><div class="v" id="lvl">1</div><div class="l">⭐ Level</div></div>
+      <div class="stat"><div class="v" id="scr">0</div><div class="l">🏆</div></div>
+      <div class="stat"><div class="v" id="fnd">0/0</div><div class="l">📦</div></div>
+      <div class="stat"><div class="v" id="lvl">1</div><div class="l">⭐</div></div>
+      <div id="comboDisplay" class="stat" style="display:none;background:rgba(255,215,0,.15);border-color:var(--gold)"><div class="v" id="comboVal" style="color:var(--gold)">x1</div><div class="l">🔥 COMBO</div></div>
     </div>
-    <button id="locateBtn" style="background:rgba(0,170,255,.2);border:1px solid rgba(0,170,255,.4);border-radius:6px;color:#0af;font-size:14px;padding:2px 6px;cursor:pointer;pointer-events:auto" title="Toggle auto-follow">🎯</button>
+    <button id="locateBtn" style="background:rgba(0,170,255,.15);border:1px solid rgba(0,170,255,.3);border-radius:5px;color:#0af;font-size:12px;padding:1px 5px;cursor:pointer">🎯</button>
+    <button id="profileBtn" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.2);border-radius:5px;color:var(--gold);font-size:12px;padding:1px 5px;cursor:pointer">👤</button>
   </div>
 </div>
-
-<!-- Zone Progress -->
-<div id="zoneBar">
-  <div class="zname"><span id="zTitle">Colombo</span><span id="zPct">0%</span></div>
-  <div class="track"><div class="fill" id="zFill" style="width:0%"></div></div>
-</div>
-
-<!-- GPS Status -->
+<div id="zoneBar"><div class="zname"><span id="zTitle">Sri Lanka</span><span id="zPct">0%</span></div><div class="track"><div class="fill" id="zFill" style="width:0%"></div></div></div>
 <div id="gpsStatus" class="none"><span id="gpsDot"></span><span id="gpsText">GPS: waiting...</span></div>
 
-<!-- Navigation Panel -->
-<div id="navPanel">
-  <div class="ntarget"><span class="nico" id="nIcon">💎</span><span id="nTarget">Select a treasure</span></div>
-  <div class="ninfo">
-    <div class="ni"><div class="nv" id="nDist">0m</div><div class="nl">Distance</div></div>
-    <div class="ni"><div class="nv" id="nBear">N</div><div class="nl">Bearing</div></div>
-    <div class="ni"><div class="nv" id="nAppr">0m</div><div class="nl">Approach</div></div>
-  </div>
-  <div class="nactions">
-    <button class="nstop" id="navStop">✕ Stop Nav</button>
-    <button class="nstreet" id="navStreet">🗺️ Street View</button>
-  </div>
+<!-- Power-ups -->
+<div id="puBar">
+  <button id="puMagnet" title="Auto-collect 100m for 30s">🧲 Magnet<span class="badge">x1</span></button>
+  <button id="puRadar" title="Show all nearby for 60s">📡 Radar<span class="badge">x1</span></button>
+  <button id="puXray" title="Reveal 500m area for 30s">👁️ X-Ray<span class="badge">x1</span></button>
+  <button id="timeAttackBtn" title="5min treasure rush" style="border-color:var(--accent);color:var(--accent)">⏱️ Rush<span class="badge">5min</span></button>
 </div>
 
-<!-- Compass Rose -->
-<div id="compassRose"><span class="north">N</span><span class="dir" id="compassDir">↑</span></div>
-
-<!-- Direction arrow -->
-<div id="dirArrow">🧭</div>
-
-<!-- Collection Ring -->
+<!-- Navigation -->
+<div id="navPanel">
+  <div class="nt"><span id="nIcon">💎</span><span id="nTarget">Select treasure</span></div>
+  <div class="ni">
+    <div class="nc"><div class="nv" id="nDist">0m</div><div class="nl">Distance</div></div>
+    <div class="nc"><div class="nv" id="nBear">N</div><div class="nl">Bearing</div></div>
+    <div class="nc"><div class="nv" id="nAppr">→</div><div class="nl">Guide</div></div>
+  </div>
+  <div class="na"><button id="navStop" style="background:var(--accent);color:#fff">✕ Stop</button><button id="navStreet" style="background:rgba(255,255,255,.1);color:#aaa">🗺️ SV</button></div>
+</div>
+<div id="compassRose"><span class="n">N</span><span class="d" id="compassDir">↑</span></div>
 <div id="collectRing">📡</div>
+<div id="dirArrow">🧭</div>
 
 <!-- Bottom Sheet -->
 <div id="bottom">
   <div class="h" id="bh"></div>
   <div class="hdr">
-    <h3>🗺️ Zones <span class="b" id="zoneTotal">0</span></h3>
-    <select class="zonesel" id="zoneSelect"><option value="">-- Select Zone --</option></select>
+    <h3>🗺️ <span id="zoneTotal">0</span></h3>
+    <div class="tabs">
+      <button class="active" data-tab="zones">🏘️ Zones</button>
+      <button data-tab="nearby">📍 Nearby</button>
+      <button data-tab="daily">⭐ Daily</button>
+    </div>
   </div>
   <div id="list"></div>
 </div>
 
-<!-- Street View Overlay -->
-<div id="svOverlay">
-  <div class="svbar"><h3>🗺️ Street View</h3><button id="svClose">✕ Close</button></div>
-  <iframe id="svFrame" allowfullscreen></iframe>
-</div>
-
-<!-- Modal -->
-<div id="modal">
-  <div id="modalBox">
-    <div class="icon" id="mIcon">💎</div>
-    <h2 id="mTitle">Treasure</h2>
-    <div class="tag" id="mTag">GEM</div>
-    <div class="desc" id="mDesc">Description</div>
-    <div class="meta" id="mMeta">0.0000, 0.0000 · Zone: Colombo</div>
-    <div class="rw" id="mReward">+100 🏆</div>
-    <div class="nrp" id="mNear">📍 0m away</div>
-    <button class="act" id="mBtn">📍 Walk to collect (GPS)</button>
+<!-- Modals -->
+<div id="modal"><div id="modalBox">
+  <div class="mi" id="mIcon">💎</div>
+  <h2 id="mTitle">Treasure</h2>
+  <div class="tag" id="mTag">GEM</div>
+  <div class="desc" id="mDesc">Description</div>
+  <div class="meta" id="mMeta">0.0000, 0.0000</div>
+  <div class="rw" id="mReward">+100 🏆</div>
+  <div class="nrp" id="mNear">📍 0m away</div>
+  <div class="actions" id="mActions">
+    <button id="mBtn" style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">📦 Collect</button>
   </div>
+</div></div>
+
+<div id="profile">
+  <div class="ph"><span>👤 My Profile</span><button id="profileClose">✕ Close</button></div>
+  <div class="pgrid">
+    <div class="pc"><div class="pv" id="pScore">0</div><div class="pl">Total Score</div></div>
+    <div class="pc"><div class="pv" id="pFound">0</div><div class="pl">Found</div></div>
+    <div class="pc"><div class="pv" id="pLevel">1</div><div class="pl">Level</div></div>
+    <div class="pc"><div class="pv" id="pCombo">0</div><div class="pl">Best Combo</div></div>
+    <div class="pc"><div class="pv" id="pDistance">0km</div><div class="pl">Traveled</div></div>
+    <div class="pc"><div class="pv" id="pDaily">0</div><div class="pl">Daily Streak</div></div>
+  </div>
+  <div class="psec"><h4>📦 Collections</h4><div id="pCollections"></div></div>
+  <div class="psec"><h4>🏆 Achievements</h4><div id="pAchievements"></div></div>
+  <div class="psec"><h4>📖 Guest Book <button id="gbOpenBtn" style="font-size:9px;padding:1px 8px;border-radius:4px;border:1px solid rgba(255,215,0,.2);background:transparent;color:#aaa;cursor:pointer;float:right">Open</button></h4><div id="pGuestbook"></div></div>
 </div>
 
-<!-- Unlock Notification -->
-<div id="unlockNotify">
-  <div class="ico">🗺️</div>
-  <h3 id="unlockTitle">Zone Unlocked!</h3>
-  <p id="unlockDesc">You can now explore this area</p>
+<div id="guestbook">
+  <div class="gh"><span>📖 Guest Book</span><button id="gbClose">✕ Close</button></div>
+  <div style="margin-bottom:10px;display:flex;gap:6px">
+    <input id="gbInput" placeholder="Write a message..." style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,215,0,.15);border-radius:6px;padding:6px 10px;color:#fff;font-size:11px">
+    <button id="gbPost" style="background:var(--gold);color:var(--dark);border:none;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Post</button>
+  </div>
+  <div id="gbList"></div>
 </div>
 
-<!-- Toast -->
+<div id="svOverlay"><div class="svb"><h3>🗺️ Street View</h3><button id="svClose">✕</button></div><iframe id="svFrame" allowfullscreen></iframe></div>
+
+<div id="arOverlay"><video id="arVideo" autoplay playsinline></video><div class="arc" id="arIcon">💎</div><div class="arb"><span id="arDist" style="color:#fff;font-size:12px">📍 0m</span><button id="arClose">✕ Close AR</button></div></div>
+
+<div id="taOverlay"><div class="tat" id="taTime">5:00</div><div class="tas" id="taScore">Score: 0</div><button class="tabtn" id="taStart">⚡ Start Rush!</button></div>
+
+<div id="unlockNotify"><div class="uico">🗺️</div><h3 id="unlockTitle">Unlocked!</h3><p id="unlockDesc">New feature available</p></div>
+
 <div id="toast"></div>
-
-<!-- Achievement -->
-<div id="achieve"><span class="aico" id="aIcon">🏆</span><span id="aText">Achievement!</span></div>
+<div id="achieve"><span class="ai" id="aIcon">🏆</span><span id="aText">Achievement!</span></div>
 
 <script>
 // =============================================
-// ADVANCED SRI LANKA TREASURE HUNT
-// Fog of War · Zone Unlock · GPS Collection
+// ULTIMATE SRI LANKA TREASURE HUNT
+// All features: powerups, daily, combo, TA, route,
+// filters, PWA, sound, haptic, profile, collections,
+// guestbook, weather, trivia, AR, adaptive GPS
 // =============================================
 
 // ---- TYPES ----
-const TYPES = [
+const TYPES=[
   {id:'gem',icon:'💎',color:'#0ff',reward:55},
   {id:'artifact',icon:'🏺',color:'#f0f',reward:85},
   {id:'nature',icon:'🌿',color:'#0f0',reward:40},
@@ -285,1154 +315,1024 @@ const TYPES = [
 ];
 
 // ---- ZONES ----
-const ZONES = [
-  {id:'colombo',name:'Colombo',nameSi:'කොළඹ',lat:6.9344,lng:79.8428,R:.13,icon:'🏙️',color:'#ff6b35',connections:['kandy','galle','ratnapura','kurunegala','negombo']},
-  {id:'kandy',name:'Kandy',nameSi:'මහනුවර',lat:7.2936,lng:80.6413,R:.11,icon:'🛕',color:'#ffd700',connections:['colombo','nuwara','matale','kurunegala']},
-  {id:'galle',name:'Galle',nameSi:'ගාල්ල',lat:6.0269,lng:80.2172,R:.10,icon:'🏰',color:'#e94560',connections:['colombo','matara','ratnapura']},
-  {id:'jaffna',name:'Jaffna',nameSi:'යාපනය',lat:9.6615,lng:80.0236,R:.10,icon:'🏯',color:'#ff8c00',connections:['mannar','vavuniya']},
-  {id:'trinco',name:'Trincomalee',nameSi:'ත්‍රිකුණාමලය',lat:8.5706,lng:81.2348,R:.10,icon:'🏖️',color:'#0af',connections:['batticaloa','anuradhapura','polonnaruwa']},
-  {id:'batti',name:'Batticaloa',nameSi:'මඩකලපුව',lat:7.7157,lng:81.6937,R:.10,icon:'🌴',color:'#0f0',connections:['trinco','badulla','ampara']},
-  {id:'ratnapura',name:'Ratnapura',nameSi:'රත්නපුර',lat:6.6827,lng:80.4037,R:.10,icon:'💎',color:'#0ff',connections:['colombo','galle','kandy','badulla']},
-  {id:'anuradha',name:'Anuradhapura',nameSi:'අනුරාධපුර',lat:8.3114,lng:80.4037,R:.10,icon:'🏛️',color:'#ff0',connections:['polonnaruwa','kurunegala','mannar','trinco','vavuniya']},
-  {id:'polo',name:'Polonnaruwa',nameSi:'පොළොන්නරුව',lat:7.9398,lng:81.0025,R:.09,icon:'🏚️',color:'#f44',connections:['anuradhapura','trinco','batticaloa']},
-  {id:'badulla',name:'Badulla',nameSi:'බදුල්ල',lat:6.9833,lng:81.0500,R:.09,icon:'⛰️',color:'#5f5',connections:['kandy','ratnapura','batticaloa','nuwara']},
-  {id:'kurunegala',name:'Kurunegala',nameSi:'කුරුණෑගල',lat:7.4833,lng:80.3667,R:.09,icon:'🐘',color:'#f80',connections:['colombo','kandy','anuradhapura']},
-  {id:'nuwara',name:'Nuwara Eliya',nameSi:'නුවරඑළිය',lat:6.9700,lng:80.7829,R:.08,icon:'🌿',color:'#fff',connections:['kandy','badulla','ratnapura']},
-  {id:'matara',name:'Matara',nameSi:'මාතර',lat:5.9500,lng:80.5333,R:.08,icon:'🌊',color:'#0af',connections:['galle','hambantota']},
-  {id:'mannar',name:'Mannar',nameSi:'මන්නාරම',lat:8.9833,lng:79.9000,R:.09,icon:'🏝️',color:'#fa0',connections:['jaffna','anuradhapura','vavuniya']},
-  {id:'hambantota',name:'Hambantota',nameSi:'හම්බන්තොට',lat:6.1333,lng:81.1333,R:.09,icon:'🦁',color:'#f44',connections:['matara','badulla']},
-  {id:'ampara',name:'Ampara',nameSi:'අම්පාර',lat:7.2833,lng:81.6667,R:.08,icon:'🌾',color:'#ff0',connections:['batticaloa','badulla']},
-  {id:'vavuniya',name:'Vavuniya',nameSi:'වවුනියාව',lat:8.7500,lng:80.5000,R:.08,icon:'🌲',color:'#0f0',connections:['jaffna','mannar','anuradhapura']},
-  {id:'negombo',name:'Negombo',nameSi:'මීගමුව',lat:7.2087,lng:79.8358,R:.08,icon:'🐟',color:'#0af',connections:['colombo','kurunegala']}
+const ZONES=[
+  {id:'colombo',name:'Colombo',nameSi:'කොළඹ',lat:6.9344,lng:79.8428,R:.13,icon:'🏙️',color:'#ff6b35'},
+  {id:'kandy',name:'Kandy',nameSi:'මහනුවර',lat:7.2936,lng:80.6413,R:.11,icon:'🛕',color:'#ffd700'},
+  {id:'galle',name:'Galle',nameSi:'ගාල්ල',lat:6.0269,lng:80.2172,R:.10,icon:'🏰',color:'#e94560'},
+  {id:'jaffna',name:'Jaffna',nameSi:'යාපනය',lat:9.6615,lng:80.0236,R:.10,icon:'🏯',color:'#ff8c00'},
+  {id:'trinco',name:'Trincomalee',nameSi:'ත්‍රිකුණාමලය',lat:8.5706,lng:81.2348,R:.10,icon:'🏖️',color:'#0af'},
+  {id:'batti',name:'Batticaloa',nameSi:'මඩකලපුව',lat:7.7157,lng:81.6937,R:.10,icon:'🌴',color:'#0f0'},
+  {id:'ratnapura',name:'Ratnapura',nameSi:'රත්නපුර',lat:6.6827,lng:80.4037,R:.10,icon:'💎',color:'#0ff'},
+  {id:'anuradha',name:'Anuradhapura',nameSi:'අනුරාධපුර',lat:8.3114,lng:80.4037,R:.10,icon:'🏛️',color:'#ff0'},
+  {id:'polo',name:'Polonnaruwa',nameSi:'පොළොන්නරුව',lat:7.9398,lng:81.0025,R:.09,icon:'🏚️',color:'#f44'},
+  {id:'badulla',name:'Badulla',nameSi:'බදුල්ල',lat:6.9833,lng:81.0500,R:.09,icon:'⛰️',color:'#5f5'},
+  {id:'kurunegala',name:'Kurunegala',nameSi:'කුරුණෑගල',lat:7.4833,lng:80.3667,R:.09,icon:'🐘',color:'#f80'},
+  {id:'nuwara',name:'Nuwara Eliya',nameSi:'නුවරඑළිය',lat:6.9700,lng:80.7829,R:.08,icon:'🌿',color:'#fff'},
+  {id:'matara',name:'Matara',nameSi:'මාතර',lat:5.9500,lng:80.5333,R:.08,icon:'🌊',color:'#0af'},
+  {id:'mannar',name:'Mannar',nameSi:'මන්නාරම',lat:8.9833,lng:79.9000,R:.09,icon:'🏝️',color:'#fa0'},
+  {id:'hambantota',name:'Hambantota',nameSi:'හම්බන්තොට',lat:6.1333,lng:81.1333,R:.09,icon:'🦁',color:'#f44'},
+  {id:'ampara',name:'Ampara',nameSi:'අම්පාර',lat:7.2833,lng:81.6667,R:.08,icon:'🌾',color:'#ff0'},
+  {id:'vavuniya',name:'Vavuniya',nameSi:'වවුනියාව',lat:8.7500,lng:80.5000,R:.08,icon:'🌲',color:'#0f0'},
+  {id:'negombo',name:'Negombo',nameSi:'මීගමුව',lat:7.2087,lng:79.8358,R:.08,icon:'🐟',color:'#0af'}
 ];
 
-// ---- NAMES ----
 const PREFIXES=['Hidden','Sunken','Lost','Ancient','Royal','Mystic','Crystal','Shadow','Emerald','Crimson','Sacred','Forgotten','Enchanted','Silent','Golden','Silver','Diamond','Velvet','Celestial','Dusk'];
 const SUFFIXES=['Vault','Shrine','Cavern','Grotto','Mound','Peak','Valley','Forest','Lagoon','Cove','Tower','Well','Pool','Falls','Hill','Rock','Cave','Glen','Harbor','Reef'];
-
-// =============================================
-// GAME STATE
-// =============================================
-let map, fogCanvas, ctx;
-let treasures = [];
-let score = 0, level = 1, xp = 0;
-let userPos = null, userMarker = null, userAccCircle = null, userHeadingLine = null;
-let exploredLocs = [];
-let currentZone = null;
-let selectedZoneForList = null;
-let modalTreasure = null;
-let collectedTotal = 0;
-let navTarget = null; // treasure being navigated to
-let navLine = null;   // polyline to target
-let nearbyMarkers = []; // Leaflet markers for 50m treasures
-let streetViewActive = false;
-let achievements = new Set();
-let unlockQueue = [];
-let autoFollow = true;
-let heading = -1; // degrees, -1 = unknown
-let gpsWatchId = null;
-let lastGpsUpdate = 0;
-let gpsAccuracy = Infinity;
-
-const EXPLORE_RADIUS = 200; // meters - fog clears in this radius
-const COLLECT_RADIUS = 50;  // meters - must be this close to collect
-const XP_PER_LEVEL = 200;
-
-// =============================================
-// GENERATE TREASURES - ALL SRI LANKA GRID
-// =============================================
-// Rough Sri Lanka coastline polygon for land filtering
-const LK_POLYGON = [
-  [9.84,79.88],[9.82,80.02],[9.80,80.15],[9.78,80.27],[9.70,80.35],
-  [9.55,80.42],[9.35,80.55],[9.20,80.70],[9.00,80.88],[8.80,81.05],
-  [8.60,81.22],[8.45,81.35],[8.25,81.48],[8.00,81.58],[7.75,81.70],
-  [7.50,81.78],[7.25,81.82],[7.00,81.80],[6.80,81.75],[6.55,81.58],
-  [6.35,81.35],[6.20,81.10],[6.10,80.85],[6.00,80.60],[5.94,80.40],
-  [5.95,80.20],[6.00,80.00],[6.10,79.95],[6.30,79.95],[6.50,79.95],
-  [6.70,79.90],[6.90,79.85],[7.10,79.82],[7.35,79.78],[7.60,79.75],
-  [7.85,79.75],[8.05,79.78],[8.20,79.75],[8.40,79.72],[8.60,79.70],
-  [8.80,79.70],[9.00,79.75],[9.20,79.78],[9.40,79.82],[9.60,79.85],
-  [9.75,79.85],[9.84,79.88]
+const TRIVIA = [
+  {q:'Sigiriya was built by which king?',a:['Kashyapa','Dhatusena','Parakramabahu'],c:0},
+  {q:'What is the national flower of Sri Lanka?',a:['Blue Water Lily','Red Lotus','Orchid'],c:0},
+  {q:'Sri Lanka\'s highest mountain is?',a:['Pidurutalagala','Adam\'s Peak','Knuckles'],c:0},
+  {q:'The sacred tooth relic is in which city?',a:['Kandy','Colombo','Anuradhapura'],c:0},
+  {q:'Ancient kingdom of Rajarata capital was?',a:['Anuradhapura','Polonnaruwa','Sigiriya'],c:0},
+  {q:'First prime minister of Sri Lanka?',a:['D.S. Senanayake','S.W.R.D. Bandaranaike','J.R. Jayewardene'],c:0},
+  {q:'Sri Lanka\'s largest national park?',a:['Wilpattu','Yala','Udawalawe'],c:0},
+  {q:'Which year did Sri Lanka gain independence?',a:['1948','1972','1815'],c:0},
+  {q:'The gem capital of Sri Lanka is?',a:['Ratnapura','Kandy','Galle'],c:0},
+  {q:'What is Poya?',a:['Full moon day','New year','Harvest festival'],c:0}
 ];
 
-function pointInPolygon(lat, lng) {
-  let inside = false;
-  for(let i=0,j=LK_POLYGON.length-1;i<LK_POLYGON.length;j=i++) {
-    const xi=LK_POLYGON[i][1],yi=LK_POLYGON[i][0];
-    const xj=LK_POLYGON[j][1],yj=LK_POLYGON[j][0];
-    const intersect = ((yi>lat)!==(yj>lat)) && (lng<(xj-xi)*(lat-yi)/(yj-yi)+xi);
-    if(intersect) inside=!inside;
-  }
-  return inside;
-}
+// ---- COASTLINE ----
+const LK_POLYGON=[
+  [9.84,79.88],[9.82,80.02],[9.80,80.15],[9.78,80.27],[9.70,80.35],[9.55,80.42],[9.35,80.55],[9.20,80.70],[9.00,80.88],[8.80,81.05],[8.60,81.22],[8.45,81.35],[8.25,81.48],[8.00,81.58],[7.75,81.70],[7.50,81.78],[7.25,81.82],[7.00,81.80],[6.80,81.75],[6.55,81.58],[6.35,81.35],[6.20,81.10],[6.10,80.85],[6.00,80.60],[5.94,80.40],[5.95,80.20],[6.00,80.00],[6.10,79.95],[6.30,79.95],[6.50,79.95],[6.70,79.90],[6.90,79.85],[7.10,79.82],[7.35,79.78],[7.60,79.75],[7.85,79.75],[8.05,79.78],[8.20,79.75],[8.40,79.72],[8.60,79.70],[8.80,79.70],[9.00,79.75],[9.20,79.78],[9.40,79.82],[9.60,79.85],[9.75,79.85],[9.84,79.88]
+];
 
-function generateTreasures() {
-  const all = [];
-  let id = 0;
+function pointInPolygon(lat,lng){let inside=false;for(let i=0,j=LK_POLYGON.length-1;i<LK_POLYGON.length;j=i++){const xi=LK_POLYGON[i][1],yi=LK_POLYGON[i][0],xj=LK_POLYGON[j][1],yj=LK_POLYGON[j][0];if((yi>lat)!==(yj>lat)&&lng<(xj-xi)*(lat-yi)/(yj-yi)+xi)inside=!inside}return inside}
+function getDist(lat1,lng1,lat2,lng2){const R=6371000,dLAT=(lat2-lat1)*Math.PI/180,dLNG=(lng2-lng1)*Math.PI/180;return R*2*Math.atan2(Math.sqrt(Math.sin(dLAT/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLNG/2)**2),Math.sqrt(1-(Math.sin(dLAT/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLNG/2)**2)))}
 
-  // Grid spacing: ~0.022° ≈ 2.4km for ~12,000 treasures across Sri Lanka
-  const STEP = 0.022;
-  const JITTER = STEP*0.35;
-  const MIN_LAT=5.93, MAX_LAT=9.85;
-  const MIN_LNG=79.68, MAX_LNG=81.88;
-
-  // Reduce rewards for "low points"
-  const lowTypes = TYPES.map(t=>({...t,reward:Math.round(t.reward*0.3)}));
-
-  for(let lat=MIN_LAT; lat<=MAX_LAT; lat+=STEP) {
-    for(let lng=MIN_LNG; lng<=MAX_LNG; lng+=STEP) {
-      // Jitter
-      const jlat = lat + (Math.random()-0.5)*JITTER;
-      const jlng = lng + (Math.random()-0.5)*JITTER;
-
-      // Skip if not on Sri Lanka landmass
-      if(!pointInPolygon(jlat, jlng)) continue;
-
-      // Determine which zone this belongs to (for zone UI)
-      let nearestZone = null, nearDist = Infinity;
-      for(const z of ZONES) {
-        const d = getDist(jlat, jlng, z.lat, z.lng);
-        if(d < nearDist) { nearDist=d; nearestZone=z.id; }
-      }
-
-      const t = lowTypes[Math.floor(Math.random()*lowTypes.length)];
-      const p = PREFIXES[Math.floor(Math.random()*PREFIXES.length)];
-      const s = SUFFIXES[Math.floor(Math.random()*SUFFIXES.length)];
-      all.push({
-        id:id++, z:nearestZone||'colombo', lat:jlat, lng:jlng, ti:t,
-        n:`${p} ${s}`,
-        d:1+Math.floor(Math.random()*5),
-        c:false
-      });
-    }
+// ---- GENERATE ----
+function genTreasures(){
+  const all=[];let id=0;const STEP=0.022,JITTER=STEP*0.35;
+  const lowTypes=TYPES.map(t=>({...t,reward:Math.round(t.reward*0.3)}));
+  for(let lat=5.93;lat<=9.85;lat+=STEP)for(let lng=79.68;lng<=81.88;lng+=STEP){
+    const jlat=lat+(Math.random()-.5)*JITTER,jlng=lng+(Math.random()-.5)*JITTER;
+    if(!pointInPolygon(jlat,jlng))continue;
+    let nz=null,nd=Infinity;
+    for(const z of ZONES){const d=getDist(jlat,jlng,z.lat,z.lng);if(d<nd){nd=d;nz=z.id}}
+    const t=lowTypes[Math.random()*lowTypes.length|0];
+    all.push({id:id++,z:nz||'colombo',lat:jlat,lng:jlng,ti:t,n:PREFIXES[Math.random()*PREFIXES.length|0]+' '+SUFFIXES[Math.random()*SUFFIXES.length|0],d:1+Math.random()*5|0,c:false,trivia:Math.random()<.15?TRIVIA[Math.random()*TRIVIA.length|0]:null});
   }
   return all;
 }
 
 // =============================================
+// SOUND ENGINE
+// =============================================
+const Snd={ctx:null,init(){try{this.ctx=new(window.AudioContext||webkitAudioContext)()}catch(e){}},
+  beep(f,d,v){try{const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.value=v||.3;g.gain.exponentialRampToValueAtTime(.001,this.ctx.currentTime+d);o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+d)}catch(e){}},
+  collect(){this.beep(880,.1,.3);setTimeout(()=>this.beep(1100,.08,.2),80)},
+  chime(){this.beep(660,.15,.25);setTimeout(()=>this.beep(880,.15,.2),100);setTimeout(()=>this.beep(1100,.2,.15),200)},
+  error(){this.beep(200,.2,.15);setTimeout(()=>this.beep(180,.3,.1),150)},
+  combo(){this.beep(523,.1,.3);setTimeout(()=>this.beep(659,.1,.25),80);setTimeout(()=>this.beep(784,.1,.2),160);setTimeout(()=>this.beep(1047,.15,.15),240)},
+  powerup(){this.beep(440,.1,.25);setTimeout(()=>this.beep(554,.1,.2),70);setTimeout(()=>this.beep(659,.15,.15),140)},
+  levelUp(){this.beep(523,.15,.3);setTimeout(()=>this.beep(659,.15,.25),120);setTimeout(()=>this.beep(784,.15,.2),240);setTimeout(()=>this.beep(1047,.2,.15),360);setTimeout(()=>this.beep(1319,.3,.1),480)},
+  taGo(){this.beep(880,.05,.3);setTimeout(()=>this.beep(1100,.05,.25),100);setTimeout(()=>this.beep(1320,.05,.2),200)},
+  taEnd(){for(let i=0;i<3;i++)setTimeout(()=>this.beep(440,.2,.3),i*300)}
+};
+
+// =============================================
+// HAPTIC
+// =============================================
+function haptic(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
+
+// =============================================
+// WEATHER
+// =============================================
+function getWeather(){
+  const h=new Date().getHours();
+  if(h<6)return{id:'night',name:'Night',icon:'🌙',mult:1.3};
+  if(h<9)return{id:'morning',name:'Morning',icon:'🌅',mult:1.1};
+  if(h<16)return{id:'day',name:'Day',icon:'☀️',mult:1.0};
+  if(h<18)return{id:'evening',name:'Evening',icon:'🌆',mult:1.1};
+  return{id:'night',name:'Night',icon:'🌙',mult:1.2};
+}
+
+// =============================================
+// DAILY TREASURES
+// =============================================
+function getDailySeed(){
+  const d=new Date();
+  return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+}
+
+function pickDailyTreasures(){
+  const seed=getDailySeed();
+  const daily=[],available=treasures.filter(t=>!t.c);
+  if(available.length<3)return daily;
+  const rng=seedRandom(seed);
+  for(let i=0;i<3;i++){
+    const idx=rng()*available.length|0;
+    daily.push(available[idx]);
+    available.splice(idx,1);
+  }
+  return daily;
+}
+
+function seedRandom(seed){
+  return function(){
+    seed=(seed*9301+49297)%233280;
+    return seed/233280;
+  };
+}
+
+// =============================================
+// GAME STATE
+// =============================================
+let map,fogCanvas,ctx;
+let treasures=[];
+let score=0,level=1,xp=0;
+let userPos=null,userMarker=null,userAccCircle=null,userHeadingLine=null;
+let exploredLocs=[];
+let currentZone=null,selectedTab='zones',selectedZoneForList=null;
+let modalTreasure=null;
+let collectedTotal=0,bestCombo=0,totalTravelDist=0,lastTravelPos=null,dailyStreak=0;
+let navTarget=null,navLine=null;
+let heading=-1,gpsWatchId=null,lastGpsUpdate=0,gpsAccuracy=Infinity;
+let autoFollow=true;
+let achievements=new Set();
+let guestBook=JSON.parse(localStorage.getItem('nd_gb')||'[]');
+const EXPLORE_RADIUS=200,COLLECT_RADIUS=50,XP_PER_LEVEL=200;
+
+// Power-ups
+const PU={magnet:{active:false,timer:null,left:1},radar:{active:false,timer:null,left:1},xray:{active:false,timer:null,left:1}};
+let powerupActive=null,powerupTimer=null;
+
+// Combo
+let comboCount=0,comboTimer=null,bestComboSession=0;
+
+// Time Attack
+const TA={active:false,time:300,score:0,timer:null};
+
+// Adaptive GPS
+let gpsMode='high'; // high, balanced, low
+let lastSpeed=0;
+
+// =============================================
 // SAVE/LOAD
 // =============================================
-function save() {
-  try {
-    const data = {s:score,l:level,x:xp,ex:exploredLocs,
-      tr:treasures.filter(t=>t.c).map(t=>t.id),
-      ac:Array.from(achievements)};
-    localStorage.setItem('nd_adv',JSON.stringify(data));
+function save(){
+  try{
+    const data={s:score,l:level,x:xp,ex:exploredLocs,tr:treasures.filter(t=>t.c).map(t=>t.id),ac:[...achievements],bc:bestCombo,td:totalTravelDist,ds:dailyStreak,pu:{m:PU.magnet.left,r:PU.radar.left,x:PU.xray.left}};
+    localStorage.setItem('nd_ult',JSON.stringify(data));
+    localStorage.setItem('nd_gb',JSON.stringify(guestBook));
   }catch(e){}
 }
 
-function load() {
-  try {
-    const d = JSON.parse(localStorage.getItem('nd_adv'));
-    if(!d) return false;
-    score=d.s||0; level=d.l||1; xp=d.x||0;
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('nd_ult'));
+    if(!d)return false;
+    score=d.s||0;level=d.l||1;xp=d.x||0;
     exploredLocs=d.ex||[];
     achievements=new Set(d.ac||[]);
-    const collected = new Set(d.tr||[]);
-    for(const t of treasures) {
-      if(collected.has(t.id)) {t.c=true;collectedTotal++;}
-    }
+    bestCombo=d.bc||0;totalTravelDist=d.td||0;dailyStreak=d.ds||0;
+    if(d.pu){PU.magnet.left=d.pu.m||1;PU.radar.left=d.pu.r||1;PU.xray.left=d.pu.x||1}
+    const col=new Set(d.tr||[]);
+    for(const t of treasures){if(col.has(t.id)){t.c=true;collectedTotal++}}
     return true;
   }catch(e){return false;}
 }
 
 // =============================================
+// SOUND / HAPTIC WRAPPERS
+// =============================================
+function playCollect(){Snd.collect();haptic(30)}
+function playChime(){Snd.chime();haptic(20)}
+function playCombo(){Snd.combo();haptic([50,30,50])}
+function playLevelUp(){Snd.levelUp();haptic([40,40,60,80])}
+function playPowerup(){Snd.powerup();haptic(30)}
+function playError(){Snd.error();haptic(100)}
+
+// =============================================
 // MAP & CANVAS
 // =============================================
-function init() {
-  map = L.map('map',{
-    center:[7.8731,80.7718],zoom:8,
-    zoomControl:false,attributionControl:false
-  });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:18
-  }).addTo(map);
+function init(){
+  Snd.init();
+  map=L.map('map',{center:[7.8731,80.7718],zoom:8,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
 
-  fogCanvas = document.getElementById('fogCanvas');
-  ctx = fogCanvas.getContext('2d');
+  fogCanvas=document.getElementById('fogCanvas');
+  ctx=fogCanvas.getContext('2d');
 
-  // Generate treasures
-  treasures = generateTreasures();
-
-  // Load save
+  treasures=genTreasures();
   load();
+  updatePUButtons();
 
-  // Setup canvas
   resizeCanvas();
   window.addEventListener('resize',resizeCanvas);
   map.on('moveend',render);
   map.on('zoomend',render);
-
-  // Map click for treasure interaction
   map.on('click',onMapClick);
 
-  // Locate / auto-follow button
   document.getElementById('locateBtn').addEventListener('click',()=>{
-    autoFollow = !autoFollow;
-    document.getElementById('locateBtn').style.background = autoFollow ? 'rgba(0,170,255,.4)' : 'rgba(0,170,255,.1)';
-    document.getElementById('locateBtn').style.borderColor = autoFollow ? 'rgba(0,170,255,.8)' : 'rgba(0,170,255,.2)';
-    if(autoFollow && userPos) {
-      map.flyTo([userPos.lat,userPos.lng],Math.max(map.getZoom(),14),{duration:.5});
-    }
-    showToast(autoFollow ? '📍 Auto-follow ON' : '📍 Auto-follow OFF');
+    autoFollow=!autoFollow;
+    document.getElementById('locateBtn').style.background=autoFollow?'rgba(0,170,255,.4)':'rgba(0,170,255,.1)';
+    if(autoFollow&&userPos)map.flyTo([userPos.lat,userPos.lng],Math.max(map.getZoom(),14),{duration:.5});
+    showToast(autoFollow?'📍 Auto-follow ON':'📍 Auto-follow OFF');
   });
+  document.getElementById('profileBtn').addEventListener('click',()=>{renderProfile();document.getElementById('profile').classList.add('show')});
+  document.getElementById('profileClose').addEventListener('click',()=>document.getElementById('profile').classList.remove('show'));
+  document.getElementById('gbOpenBtn').addEventListener('click',()=>{renderGB();document.getElementById('guestbook').classList.add('show')});
+  document.getElementById('gbClose').addEventListener('click',()=>document.getElementById('guestbook').classList.remove('show'));
+  document.getElementById('gbPost').addEventListener('click',postGB);
+  document.getElementById('gbInput').addEventListener('keydown',e=>{if(e.key==='Enter')postGB()});
 
-  // GPS - real-time mobile tracking
-  if(navigator.geolocation) {
-    startGps();
-  } else {
-    updateGpsStatus('none','GPS not available');
-  }
+  // Power-up buttons
+  document.getElementById('puMagnet').addEventListener('click',()=>activatePU('magnet'));
+  document.getElementById('puRadar').addEventListener('click',()=>activatePU('radar'));
+  document.getElementById('puXray').addEventListener('click',()=>activatePU('xray'));
+  document.getElementById('timeAttackBtn').addEventListener('click',()=>{document.getElementById('taOverlay').classList.add('show')});
+  document.getElementById('taStart').addEventListener('click',startTA);
 
-  // Bottom sheet
-  document.getElementById('bh').addEventListener('click',()=>{
-    document.getElementById('bottom').classList.toggle('collapsed');
-  });
-  document.getElementById('zoneSelect').addEventListener('change',function(){
-    selectedZoneForList = this.value;
-    renderZones();
-  });
-
-  // Modal button
-  document.getElementById('mBtn').addEventListener('click',onCollectFromModal);
-  document.getElementById('modal').addEventListener('click',e=>{
-    if(e.target===e.currentTarget) closeModal();
-  });
-
-  // Navigation controls
+  // Nav
   document.getElementById('navStop').addEventListener('click',stopNav);
   document.getElementById('navStreet').addEventListener('click',openStreetView);
   document.getElementById('svClose').addEventListener('click',closeStreetView);
 
-  // Render
+  // AR
+  document.getElementById('arClose').addEventListener('click',closeAR);
+
+  // Tabs
+  document.querySelectorAll('[data-tab]').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      selectedTab=t.dataset.tab;
+      renderList();
+    });
+  });
+
+  // Bottom sheet
+  document.getElementById('bh').addEventListener('click',()=>document.getElementById('bottom').classList.toggle('collapsed'));
+
+  // Modal
+  document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+  // GPS
+  if(navigator.geolocation)startGps();
+  else updateGpsStatus('none','GPS not available');
+
   updateHUD();
-  renderZones();
+  renderList();
   render();
 }
 
-function resizeCanvas() {
-  const s = map.getSize();
-  fogCanvas.width = s.x;
-  fogCanvas.height = s.y;
-  fogCanvas.style.width = s.x+'px';
-  fogCanvas.style.height = s.y+'px';
+function resizeCanvas(){
+  const s=map.getSize();
+  fogCanvas.width=s.x;fogCanvas.height=s.y;
+  fogCanvas.style.width=s.x+'px';fogCanvas.style.height=s.y+'px';
   render();
 }
 
 // =============================================
-// FOG OF WAR RENDER
+// GPS
 // =============================================
-function render() {
-  if(!ctx || !map) return;
-  const s = map.getSize();
-  if(fogCanvas.width !== s.x || fogCanvas.height !== s.y) {
-    fogCanvas.width = s.x;
-    fogCanvas.height = s.y;
+function startGps(){
+  gpsWatchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,timeout:5000,maximumAge:1000});
+  if(window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation',evt=>{
+      if(evt.webkitCompassHeading!=null)heading=evt.webkitCompassHeading;
+      else if(evt.alpha!=null)heading=360-evt.alpha;
+    },true);
+  }
+}
+
+function updateGpsStatus(state,text){
+  const el=document.getElementById('gpsStatus');
+  el.className=state;
+  document.getElementById('gpsText').textContent=text;
+}
+
+function onPos(pos){
+  const {latitude:lat,longitude:lng,accuracy,heading:gpsHeading,speed}=pos.coords;
+  const now=Date.now();
+  lastGpsUpdate=now;gpsAccuracy=accuracy;
+  if(gpsHeading!=null&&gpsHeading>=0)heading=gpsHeading;
+
+  // Adaptive GPS mode
+  const spd=speed||0;
+  if(spd>2&&gpsMode!=='high'){gpsMode='high';restartGps(500)}
+  else if(spd<.5&&spd>=0&&gpsMode!=='low'){gpsMode='low';restartGps(5000)}
+  lastSpeed=spd;
+
+  userPos={lat,lng};
+
+  // Travel distance tracking
+  if(lastTravelPos){
+    totalTravelDist+=getDist(lastTravelPos.lat,lastTravelPos.lng,lat,lng);
+  }
+  lastTravelPos={lat,lng};
+
+  if(!userMarker){
+    userMarker=L.marker([lat,lng],{icon:L.divIcon({className:'',html:'<div class="user-dot"></div>',iconSize:[10,10],iconAnchor:[5,5]})}).addTo(map);
+  }else userMarker.setLatLng([lat,lng]);
+
+  // Accuracy ring
+  if(userAccCircle)map.removeLayer(userAccCircle);
+  if(accuracy<200){
+    userAccCircle=L.circle([lat,lng],{radius:accuracy,className:'accuracy-ring',color:accuracy<30?'#0f8':accuracy<80?'#ff0':'#f44',fillColor:accuracy<30?'#0f8':accuracy<80?'#ff0':'#f44',fillOpacity:.04,weight:1,opacity:.3,interactive:false}).addTo(map);
   }
 
-  const W = fogCanvas.width, H = fogCanvas.height;
+  // GPS status
+  let gs='none',gt='GPS: searching...';
+  if(accuracy<20){gs='good';gt=`GPS: ${accuracy}m`}
+  else if(accuracy<60){gs='good';gt=`GPS: ${accuracy}m`}
+  else if(accuracy<120){gs='fair';gt=`GPS: ${accuracy}m`}
+  else if(accuracy<500){gs='poor';gt=`GPS: ${accuracy}m`}
+  else{gs='poor';gt=`GPS: ${accuracy}m`}
+  if(spd>.5)gt+=` ${(spd*3.6).toFixed(1)}km/h`;
+  updateGpsStatus(gs,gt);
+
+  if(autoFollow)map.panTo([lat,lng],{animate:true,duration:.3});
+  if(!window._firstFix){window._firstFix=true;map.flyTo([lat,lng],15,{duration:1.5})}
+
+  addExplored(lat,lng);
+
+  // Zone
+  let nearest=null,nd=Infinity;
+  for(const z of ZONES){const d=getDist(lat,lng,z.lat,z.lng);if(d<nd){nd=d;nearest=z.id}}
+  const cz=ZONES.find(z=>z.id===nearest);
+  if(cz&&nd<cz.R*111000*2){
+    if(currentZone!==nearest){currentZone=nearest;renderList();updateHUD();showToast(`📍 ${cz.nameSi} zone!`);checkAchievements()}
+  }
+  currentZone=nearest;
+
+  // Auto-collect
+  const collectRad=powerupActive==='magnet'?100:COLLECT_RADIUS;
+  for(const t of treasures){
+    if(t.c)continue;
+    if(getDist(lat,lng,t.lat,t.lng)<collectRad){
+      collectTreasure(t);
+    }
+  }
+
+  updateHUD();renderList();render();
+
+  const nearCount=treasures.filter(t=>!t.c&&getDist(lat,lng,t.lat,t.lng)<COLLECT_RADIUS*2).length;
+  document.getElementById('collectRing').classList.toggle('show',nearCount>0);
+
+  // Arrow
+  let nt=null,ntd=COLLECT_RADIUS*8;
+  for(const t of treasures){if(t.c)continue;const d=getDist(lat,lng,t.lat,t.lng);if(d<ntd){ntd=d;nt=t}}
+  const arrow=document.getElementById('dirArrow');
+  if(nt){const a=Math.atan2(nt.lng-lng,nt.lat-lat)*180/Math.PI;const s=ntd<1000?`${Math.round(ntd)}m`:`${(ntd/1000).toFixed(1)}km`;arrow.textContent=`🧭 ${s}`;arrow.style.transform=`translateX(-50%) rotate(${a}deg)`;arrow.classList.add('show')}
+  else{arrow.classList.add('show');arrow.textContent='✅ All cleared!';arrow.style.transform='translateX(-50%)';setTimeout(()=>arrow.classList.remove('show'),2000)}
+
+  // Daily streak check
+  checkDailyStreak();
+}
+
+function restartGps(maxAge){
+  if(gpsWatchId!=null)navigator.geolocation.clearWatch(gpsWatchId);
+  gpsWatchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,timeout:5000,maximumAge});
+}
+
+function onPosErr(e){
+  const errs={1:'GPS permission denied',2:'GPS unavailable (go outdoors)',3:'GPS timeout'};
+  updateGpsStatus('none',errs[e.code]||'GPS error');
+  if(!window._firstFix&&!userPos){
+    userPos={lat:6.9344,lng:79.8428};
+    addExplored(6.9344,79.8428);
+    currentZone='colombo';
+    map.setView([6.9344,79.8428],12);
+    showToast('📍 Fallback: Colombo');
+  }
+}
+
+// Watchdog
+setInterval(()=>{if(gpsWatchId==null)return;if(Date.now()-lastGpsUpdate>15000){navigator.geolocation.clearWatch(gpsWatchId);startGps();updateGpsStatus('none','GPS: reconnecting...')}},5000);
+
+// =============================================
+// FOG OF WAR
+// =============================================
+function render(){
+  if(!ctx||!map)return;
+  const s=map.getSize();
+  if(fogCanvas.width!==s.x||fogCanvas.height!==s.y){fogCanvas.width=s.x;fogCanvas.height=s.y}
+  const W=fogCanvas.width,H=fogCanvas.height,Z=map.getZoom();
   ctx.clearRect(0,0,W,H);
 
-  // 1. Draw fog
-  const fog = ctx.createRadialGradient(W/2,H/2,W*0.7,W/2,H/2,W*0.3);
-  ctx.fillStyle = 'rgba(5,5,22,0.92)';
+  // Fog fill
+  ctx.fillStyle='rgba(5,5,22,0.92)';
   ctx.fillRect(0,0,W,H);
 
-  // 2. Clear explored areas
-  if(exploredLocs.length > 0) {
-    const Z = map.getZoom();
-    // Batch rendering for performance
-    for(const loc of exploredLocs) {
-      // Skip explored points far outside viewport
-      const p = map.latLngToContainerPoint([loc.lat,loc.lng]);
-      const mPerPx = 156543.03392 * Math.cos(loc.lat*Math.PI/180) / Math.pow(2,Z);
-      const pr = EXPLORE_RADIUS / mPerPx;
-      const margin = pr * 1.2;
-      if(p.x < -margin || p.x > W+margin || p.y < -margin || p.y > H+margin) continue;
-
-      const grad = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,pr);
-      grad.addColorStop(0,'rgba(0,0,0,1)');
-      grad.addColorStop(0.6,'rgba(0,0,0,1)');
-      grad.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,pr,0,Math.PI*2);
-      ctx.fill();
+  // Clear explored
+  if(exploredLocs.length>0){
+    for(const loc of exploredLocs){
+      const p=map.latLngToContainerPoint([loc.lat,loc.lng]);
+      const mPerPx=156543.03392*Math.cos(loc.lat*Math.PI/180)/Math.pow(2,Z);
+      const pr=EXPLORE_RADIUS/mPerPx;
+      if(p.x<-pr*1.2||p.x>W+pr*1.2||p.y<-pr*1.2||p.y>H+pr*1.2)continue;
+      const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,pr);
+      grad.addColorStop(0,'rgba(0,0,0,1)');grad.addColorStop(.6,'rgba(0,0,0,1)');grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.globalCompositeOperation='destination-out';
+      ctx.fillStyle=grad;ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fill();
     }
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation='source-over';
   }
 
-  // 3. Draw zone labels (for unlocked zones)
-  ctx.globalCompositeOperation = 'source-over';
-  for(const z of ZONES) {
-    if(!isZoneUnlocked(z.id)) continue;
-    const p = map.latLngToContainerPoint([z.lat,z.lng]);
-    if(p.x < -50 || p.x > W+50 || p.y < -50 || p.y > H+50) continue;
-
-    ctx.font = 'bold 11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    // Glow
-    ctx.shadowColor = z.color;
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = z.color;
-    ctx.fillText(`${z.icon} ${z.name}`,p.x,p.y-22);
-    ctx.shadowBlur = 0;
+  // X-ray reveal
+  if(powerupActive==='xray'&&userPos){
+    const p=map.latLngToContainerPoint([userPos.lat,userPos.lng]);
+    const mPerPx=156543.03392*Math.cos(userPos.lat*Math.PI/180)/Math.pow(2,Z);
+    const pr=500/mPerPx;
+    const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,pr);
+    grad.addColorStop(0,'rgba(0,0,0,1)');grad.addColorStop(.7,'rgba(0,0,0,1)');grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.globalCompositeOperation='destination-out';
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fill();
+    ctx.globalCompositeOperation='source-over';
   }
 
-  // 4. Draw treasures in explored areas + nearby treasures through fog
-  const viewBounds = map.getBounds();
-  let chestCount = 0;
-  for(const t of treasures) {
-    if(t.c) continue;
-    const isExploredT = isExplored(t.lat,t.lng);
-    const isNearby = userPos && getDist(userPos.lat,userPos.lng,t.lat,t.lng) < COLLECT_RADIUS*2;
+  // Zone labels
+  for(const z of ZONES){
+    const p=map.latLngToContainerPoint([z.lat,z.lng]);
+    if(p.x<-50||p.x>W+50||p.y<-50||p.y>H+50)continue;
+    ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor=z.color;ctx.shadowBlur=10;ctx.fillStyle=z.color;ctx.fillText(`${z.icon} ${z.name}`,p.x,p.y-20);ctx.shadowBlur=0;
+  }
 
-    // Show if explored OR within 50m proximity (visible through fog)
-    if(!isExploredT && !isNearby) continue;
+  // Radar power-up: show all nearby through fog
+  const radarActive=powerupActive==='radar';
 
-    const p = map.latLngToContainerPoint([t.lat,t.lng]);
-    if(p.x < -15 || p.x > W+15 || p.y < -15 || p.y > H+15) continue;
+  // Draw treasures
+  for(const t of treasures){
+    if(t.c)continue;
+    const ex=isExplored(t.lat,t.lng);
+    const near=userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*2;
+    const radarVis=radarActive&&userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<200;
 
-    chestCount++;
+    if(!ex&&!near&&!radarVis)continue;
 
-    // Nearby through-fog effect
-    if(!isExploredT && isNearby) {
-      // Ghostly appearance through fog
-      ctx.globalAlpha = 0.7;
-      ctx.font = '18px serif';
-      ctx.shadowColor = t.ti.color;
-      ctx.shadowBlur = 25;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+    const p=map.latLngToContainerPoint([t.lat,t.lng]);
+    if(p.x<-15||p.x>W+15||p.y<-15||p.y>H+15)continue;
+
+    if(!ex&&(near||radarVis)){
+      ctx.globalAlpha=0.7;ctx.font='16px serif';
+      ctx.shadowColor=t.ti.color;ctx.shadowBlur=20;
+      ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText(t.ti.icon,p.x,p.y);
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-
-      // "Nearby" label
-      ctx.font = 'bold 8px sans-serif';
-      ctx.fillStyle = t.ti.color;
-      ctx.textAlign = 'center';
-      ctx.fillText('📍 NEARBY',p.x,p.y+14);
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.font='bold 7px sans-serif';ctx.fillStyle=t.ti.color;
+      ctx.fillText(radarVis?'📡 RADAR':'📍 NEARBY',p.x,p.y+12);
       continue;
     }
 
-    const icon = t.ti.icon;
-
-    // Pulsing effect for nearby treasures
-    if(isNearby) {
-      const pulse = 1 + 0.15 * Math.sin(Date.now()/300);
-      ctx.font = `${Math.round(20*pulse)}px serif`;
-      ctx.shadowColor = t.ti.color;
-      ctx.shadowBlur = 20;
-    } else {
-      ctx.font = '16px serif';
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = t.ti.color;
-    }
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(icon,p.x,p.y);
-    ctx.shadowBlur = 0;
-
-    // Difficulty dots
-    if(isNearby && Z >= 14) {
-      ctx.fillStyle = '#ffd700';
-      for(let i=0;i<t.d;i++) {
-        ctx.beginPath();
-        ctx.arc(p.x-8+i*4,p.y+11,1.5,0,Math.PI*2);
-        ctx.fill();
-      }
-    }
+    if(near){const pulse=1+.15*Math.sin(Date.now()/300);ctx.font=`${Math.round(20*pulse)}px serif`;ctx.shadowColor=t.ti.color;ctx.shadowBlur=20}
+    else{ctx.font='16px serif';ctx.shadowBlur=4;ctx.shadowColor=t.ti.color}
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.ti.icon,p.x,p.y);ctx.shadowBlur=0;
+    if(near&&Z>=14){ctx.fillStyle='#ffd700';for(let i=0;i<t.d;i++){ctx.beginPath();ctx.arc(p.x-8+i*4,p.y+11,1.5,0,Math.PI*2);ctx.fill()}}
   }
-
-  fogCanvas.dataset.chests = chestCount;
 }
+
+function isExplored(lat,lng){for(const l of exploredLocs){if(getDist(lat,lng,l.lat,l.lng)<EXPLORE_RADIUS)return true}return false}
+function addExplored(lat,lng){for(const l of exploredLocs){if(getDist(lat,lng,l.lat,l.lng)<EXPLORE_RADIUS*.5)return}exploredLocs.push({lat,lng});render()}
 
 // =============================================
-// EXPLORATION
+// POWER-UPS
 // =============================================
-function isExplored(lat,lng) {
-  for(const loc of exploredLocs) {
-    if(getDist(lat,lng,loc.lat,loc.lng) < EXPLORE_RADIUS) return true;
-  }
-  return false;
-}
+function activatePU(type){
+  if(PU[type].left<=0){showToast(`❌ No ${type} charges left!`);playError();return}
+  if(powerupActive){showToast('⏳ Power-up already active');return}
 
-function addExplored(lat,lng) {
-  // Don't add if already explored nearby
-  for(const loc of exploredLocs) {
-    if(getDist(lat,lng,loc.lat,loc.lng) < EXPLORE_RADIUS*0.5) return;
-  }
-  exploredLocs.push({lat,lng});
-  render();
-}
+  PU[type].left--;
+  powerupActive=type;
+  PU[type].active=true;
+  updatePUButtons();
+  playPowerup();
+  showToast(`⚡ ${type.toUpperCase()} activated!`);
 
-function isZoneUnlocked(zid) {
-  // All zones unlocked by default - treasures are everywhere!
-  return true;
-}
-
-// =============================================
-// GPS - REAL-TIME MOBILE TRACKING
-// =============================================
-function startGps() {
-  const opts = {
-    enableHighAccuracy: true,
-    timeout: 5000,
-    maximumAge: 1000 // accept 1s old positions for faster updates
-  };
-
-  gpsWatchId = navigator.geolocation.watchPosition(onPos, onPosErr, opts);
-
-  // Also try to get heading from DeviceOrientation if available
-  if(window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', function(evt) {
-      if(evt.webkitCompassHeading != null) {
-        heading = evt.webkitCompassHeading;
-      } else if(evt.alpha != null) {
-        heading = 360 - evt.alpha; // convert to compass heading
-      }
-    }, true);
-  }
-}
-
-function updateGpsStatus(state, text) {
-  const el = document.getElementById('gpsStatus');
-  el.className = state;
-  document.getElementById('gpsText').textContent = text;
-}
-
-function updateAccuracyRing(lat, lng, acc) {
-  if(userAccCircle) map.removeLayer(userAccCircle);
-  if(acc < 200) {
-    userAccCircle = L.circle([lat, lng], {
-      radius: acc,
-      className: 'accuracy-ring',
-      color: acc < 30 ? '#0f8' : acc < 80 ? '#ff0' : '#f44',
-      fillColor: acc < 30 ? '#0f8' : acc < 80 ? '#ff0' : '#f44',
-      fillOpacity: 0.04,
-      weight: 1,
-      opacity: 0.3,
-      interactive: false
-    }).addTo(map);
-  }
-}
-
-function updateHeadingLine(lat, lng, head) {
-  if(userHeadingLine) map.removeLayer(userHeadingLine);
-  if(head < 0) return;
-  const dist = 0.002; // ~200m line
-  const rad = head * Math.PI / 180;
-  const endLat = lat + dist * Math.cos(rad);
-  const endLng = lng + dist * Math.sin(rad);
-
-  // Triangles pointing in heading direction (small)
-  const midLat = lat + dist * 0.5 * Math.cos(rad);
-  const midLng = lng + dist * 0.5 * Math.sin(rad);
-
-  userHeadingLine = L.polyline([[lat, lng], [endLat, endLng]], {
-    color: '#0af', weight: 2, opacity: 0.4, interactive: false
-  }).addTo(map);
-}
-
-function onPos(pos) {
-  const {latitude:lat, longitude:lng, accuracy, heading:gpsHeading, speed} = pos.coords;
-  const now = Date.now();
-  lastGpsUpdate = now;
-  gpsAccuracy = accuracy;
-
-  // Update heading from GPS if available (more reliable than compass)
-  if(gpsHeading != null && gpsHeading >= 0) heading = gpsHeading;
-
-  userPos = {lat, lng};
-
-  // --- User marker with rotation (heading) ---
-  const headDeg = heading >= 0 ? heading : 0;
-  if(!userMarker) {
-    userMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: '',
-        html: `<div style="position:relative;width:24px;height:24px">
-          <!-- Main dot -->
-          <div class="user-dot" style="position:absolute;top:6px;left:6px"></div>
-          ${heading >= 0 ? `<div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);font-size:8px;opacity:0.7">▲</div>` : ''}
-        </div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      })
-    }).addTo(map);
-  } else {
-    userMarker.setLatLng([lat, lng]);
-    // Update marker rotation for heading
-    if(heading >= 0) {
-      userMarker.setRotationAngle ? userMarker.setRotationAngle(headDeg) : null;
-    }
-  }
-
-  // --- Accuracy ring ---
-  updateAccuracyRing(lat, lng, accuracy);
-
-  // --- Heading line ---
-  if(heading >= 0) updateHeadingLine(lat, lng, heading);
-  else if(userHeadingLine) { map.removeLayer(userHeadingLine); userHeadingLine = null; }
-
-  // --- GPS status indicator ---
-  let gpsState = 'none', gpsText = 'GPS: searching...';
-  if(accuracy < 20) { gpsState = 'good'; gpsText = `GPS: ${accuracy}m (high)`; }
-  else if(accuracy < 60) { gpsState = 'good'; gpsText = `GPS: ${accuracy}m`; }
-  else if(accuracy < 120) { gpsState = 'fair'; gpsText = `GPS: ${accuracy}m`; }
-  else if(accuracy < 500) { gpsState = 'poor'; gpsText = `GPS: ${accuracy}m (low)`; }
-  else { gpsState = 'poor'; gpsText = `GPS: ${accuracy}m (weak)`; }
-  if(speed != null && speed > 0.5) gpsText += ` ${(speed*3.6).toFixed(1)}km/h`;
-  updateGpsStatus(gpsState, gpsText);
-
-  // --- Auto-follow: move map to keep user centered ---
-  if(autoFollow) {
-    map.panTo([lat, lng], {animate: true, duration: 0.3});
-  }
-
-  // First fix: fly to user location
-  if(!window._firstFix) {
-    window._firstFix = true;
-    map.flyTo([lat, lng], 15, {duration: 1.5});
-  }
-
-  // --- Explore: add to fog-cleared areas ---
-  addExplored(lat, lng);
-
-  // --- Zone detection ---
-  let nearest = null, nearDist = Infinity;
-  for(const z of ZONES) {
-    const d = getDist(lat, lng, z.lat, z.lng);
-    if(d < nearDist) { nearDist = d; nearest = z.id; }
-  }
-  const cz = ZONES.find(z=>z.id===nearest);
-  if(cz && nearDist < cz.R*111000*2) {
-    if(currentZone !== nearest) {
-      currentZone = nearest;
-      renderZones();
-      updateHUD();
-      showToast(`📍 Entered ${cz.nameSi} zone!`);
-      checkAchievements();
-    }
-  }
-  currentZone = nearest;
-
-  // --- Auto-collect nearby treasures ---
-  let collected = false;
-  for(const t of treasures) {
-    if(t.c) continue;
-    if(getDist(lat, lng, t.lat, t.lng) < COLLECT_RADIUS) {
-      collectTreasure(t);
-      collected = true;
-    }
-  }
-
-  // --- UI updates ---
-  updateHUD();
-  renderZones();
-  render();
-
-  // --- Collection ring (radar glow) ---
-  const nearCount = treasures.filter(t=>!t.c && getDist(lat,lng,t.lat,t.lng) < COLLECT_RADIUS*2).length;
-  document.getElementById('collectRing').classList.toggle('show', nearCount > 0);
-
-  // --- Direction arrow toward nearest uncollected treasure ---
-  let nearestT = null, nearestTD = COLLECT_RADIUS * 8;
-  for(const t of treasures) {
-    if(t.c) continue;
-    const d = getDist(lat, lng, t.lat, t.lng);
-    if(d < nearestTD) { nearestTD = d; nearestT = t; }
-  }
-  const arrow = document.getElementById('dirArrow');
-  if(nearestT) {
-    const angle = Math.atan2(nearestT.lng - lng, nearestT.lat - lat) * 180 / Math.PI;
-    const distStr = nearestTD < 1000 ? `${Math.round(nearestTD)}m` : `${(nearestTD/1000).toFixed(1)}km`;
-    arrow.textContent = `🧭 ${distStr}`;
-    arrow.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-    arrow.classList.add('show');
-  } else {
-    arrow.classList.add('show');
-    arrow.textContent = '✅ All cleared!';
-    arrow.style.transform = 'translateX(-50%)';
-    setTimeout(() => arrow.classList.remove('show'), 2000);
-  }
-
-  // --- Process zone unlocks ---
-  processUnlocks();
-}
-
-function onPosErr(e) {
-  const errors = {
-    1: 'Permission denied - allow GPS access in browser settings',
-    2: 'GPS unavailable - try moving outdoors',
-    3: 'GPS timeout - check location settings'
-  };
-  const msg = errors[e.code] || `GPS error: ${e.message}`;
-  updateGpsStatus('none', msg);
-
-  // Fallback: center on Colombo if first fix never arrived
-  if(!window._firstFix && !userPos) {
-    userPos = {lat: 6.9344, lng: 79.8428};
-    addExplored(6.9344, 79.8428);
-    currentZone = 'colombo';
-    map.setView([6.9344, 79.8428], 12);
-    updateHUD();
-    renderZones();
+  const durations={magnet:30000,radar:60000,xray:30000};
+  if(powerupTimer)clearTimeout(powerupTimer);
+  powerupTimer=setTimeout(()=>{
+    powerupActive=null;
+    PU[type].active=false;
+    updatePUButtons();
+    save();
+    showToast(`⏹️ ${type.toUpperCase()} expired`);
     render();
-    showToast('📍 Using Colombo as fallback location');
+  },durations[type]);
+  render();
+  save();
+}
+
+function updatePUButtons(){
+  for(const [k,v] of Object.entries(PU)){
+    const btn=document.getElementById('pu'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(!btn)continue;
+    btn.querySelector('.badge').textContent=`x${v.left}`;
+    btn.classList.toggle('active',v.active);
+    btn.disabled=v.left<=0||!!powerupActive;
   }
 }
 
-// Watchdog: restart GPS if no update for 15s
-setInterval(() => {
-  if(gpsWatchId == null) return;
-  if(Date.now() - lastGpsUpdate > 15000) {
-    navigator.geolocation.clearWatch(gpsWatchId);
-    startGps();
-    updateGpsStatus('none', 'GPS: reconnecting...');
-  }
-}, 5000);
+function addPowerupCharge(type){
+  PU[type].left++;
+  updatePUButtons();
+  save();
+  showToast(`🎁 +1 ${type.toUpperCase()} charge!`);
+}
 
 // =============================================
 // COLLECTION
 // =============================================
-function collectTreasure(t) {
-  if(t.c) return;
-  t.c = true;
-  collectedTotal++;
-  const rw = t.ti.reward * t.d;
-  score += rw;
-  xp += rw;
+let lastCollectTime=0;
 
-  // Level up
-  while(xp >= XP_PER_LEVEL*level) {
-    xp -= XP_PER_LEVEL*level;
-    level++;
-    showAchievement('⬆️',`Level ${level} reached!`);
+function collectTreasure(t){
+  if(t.c)return;
+  t.c=true;collectedTotal++;
+
+  // Weather multiplier
+  const w=getWeather();
+  let rw=t.ti.reward*t.d*w.mult;
+  rw=Math.round(rw);
+
+  // Combo multiplier
+  const now=Date.now();
+  if(now-lastCollectTime<300000){comboCount++;if(comboCount>bestComboSession)bestComboSession=comboCount;if(comboCount>bestCombo)bestCombo=comboCount}
+  else{comboCount=1}
+  lastCollectTime=now;
+  if(comboCount>=3)rw=Math.round(rw*(1+(comboCount-2)*.3));
+
+  score+=rw;xp+=rw;
+
+  while(xp>=XP_PER_LEVEL*level){xp-=XP_PER_LEVEL*level;level++;playLevelUp();showAchievement('⬆️',`Level ${level}!`);haptic([40,40,60])}
+
+  // Trivia gate
+  if(t.trivia&&Math.random()<.3){
+    showTriviaGate(t);
+    return;
   }
 
-  save();
-  updateHUD();
-  renderZones();
-  render();
-  showToast(`📦 ${t.n} +${rw} 🏆`);
+  playCollect();
+  if(comboCount>=3)playCombo();
+
+  save();updateHUD();renderList();render();
+  showToast(`📦 ${t.n} +${rw} 🏆${comboCount>=3?` 🔥x${comboCount}`:''}${w.mult!==1?` ${w.icon}`:''}`);
+  updateComboDisplay();
   checkAchievements();
 }
 
-function onCollectFromModal() {
-  if(!modalTreasure) return;
-  const t = modalTreasure;
-  if(t.c) {closeModal(); return;}
-
-  if(!userPos) {
-    showToast('📍 GPS not available yet');
-    return;
-  }
-  const d = getDist(userPos.lat,userPos.lng,t.lat,t.lng);
-  if(d < COLLECT_RADIUS) {
-    collectTreasure(t);
-    closeModal();
-  } else {
-    showToast(`📍 ${Math.round(d)}m away - move closer! (${COLLECT_RADIUS}m needed)`);
-  }
+function updateComboDisplay(){
+  const el=document.getElementById('comboDisplay');
+  if(comboCount>=3){el.style.display='';document.getElementById('comboVal').textContent=`x${comboCount}`;el.style.animation='none';void el.offsetWidth;el.style.animation='accPulse 1s infinite'}
+  else el.style.display='none';
 }
 
 // =============================================
-// CANVAS CLICK
+// TRIVIA GATE
 // =============================================
-function onMapClick(e) {
-  const {lat,lng} = e.latlng;
-  // Find nearest treasure within 30px of click
-  const clickPx = map.latLngToContainerPoint([lat,lng]);
-  let nearest = null, nearDist = 30;
-  for(const t of treasures) {
-    if(t.c) continue;
-    if(!isExplored(t.lat,t.lng)) continue;
-    const tp = map.latLngToContainerPoint([t.lat,t.lng]);
-    const d = Math.sqrt((tp.x-clickPx.x)**2 + (tp.y-clickPx.y)**2);
-    if(d < nearDist) {nearDist = d; nearest = t;}
+let triviaTreasure=null;
+function showTriviaGate(t){
+  if(!t.trivia){collectTreasure(t);return}
+  triviaTreasure=t;
+  const tr=t.trivia;
+  let html=`<div class="mi">❓</div><h2>Trivia Challenge!</h2><div class="desc">${tr.q}</div><div class="actions">`;
+  for(let i=0;i<tr.a.length;i++){
+    html+=`<button style="background:rgba(255,255,255,.08);color:#fff;padding:8px 16px;margin:3px" data-i="${i}">${tr.a[i]}</button>`;
   }
-  if(nearest) openModal(nearest);
-}
-
-// =============================================
-// MODAL
-// =============================================
-function openModal(t) {
-  modalTreasure = t;
-  document.getElementById('mIcon').textContent = t.ti.icon;
-  document.getElementById('mTitle').textContent = t.n;
-  const tag = document.getElementById('mTag');
-  tag.textContent = t.ti.id.toUpperCase();
-  tag.style.background = t.ti.color+'30';
-  tag.style.color = t.ti.color;
-
-  const zone = ZONES.find(z=>z.id===t.z);
-  document.getElementById('mDesc').textContent = `${t.n} treasure hidden in ${zone?zone.name:t.z}! Explore the area to find it.`;
-  document.getElementById('mMeta').textContent = `${t.lat.toFixed(4)}, ${t.lng.toFixed(4)} · ${zone?zone.nameSi:t.z}`;
-  document.getElementById('mReward').textContent = `+${t.ti.reward * t.d} 🏆 · ⭐ Diff ${t.d}/5`;
-  document.getElementById('mReward').style.color = t.ti.color;
-
-  const btn = document.getElementById('mBtn');
-  if(t.c) {
-    btn.textContent = '✅ Already Collected!';
-    btn.style.background = '#444';
-    btn.style.boxShadow = 'none';
-    btn.disabled = true;
-  } else if(!userPos) {
-    btn.textContent = '📍 Waiting for GPS...';
-    btn.style.background = '#555';
-    btn.disabled = false;
-  } else {
-    const d = getDist(userPos.lat,userPos.lng,t.lat,t.lng);
-    document.getElementById('mNear').textContent = `📍 ${Math.round(d)}m away (need ${COLLECT_RADIUS}m)`;
-    if(d < COLLECT_RADIUS) {
-      btn.textContent = '📦 Collect Now!';
-      btn.style.background = 'linear-gradient(135deg,var(--gold),var(--primary))';
-      btn.disabled = false;
-    } else {
-      btn.textContent = `📍 ${Math.round(d)}m away - Move closer`;
-      btn.style.background = 'linear-gradient(135deg,var(--primary),var(--accent))';
-      btn.disabled = false;
-    }
-  }
-
-  // Navigate button + Street View button
-  // Remove old extra buttons if any
-  const oldExtras = document.querySelectorAll('#modalBox .modal-extra');
-  oldExtras.forEach(e=>e.remove());
-
-  if(!t.c) {
-    const btnWrap = document.createElement('div');
-    btnWrap.className = 'modal-extra';
-    btnWrap.style.cssText = 'display:flex;gap:6px;margin-top:8px;justify-content:center';
-
-    const navBtn = document.createElement('button');
-    navBtn.textContent = '🧭 Navigate';
-    navBtn.style.cssText = 'background:linear-gradient(135deg,#0af,#0ff);border:none;color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;flex:1';
-
-    const svBtn = document.createElement('button');
-    svBtn.textContent = '🗺️ Street View';
-    svBtn.style.cssText = 'background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#aaa;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;flex:1';
-
-    navBtn.addEventListener('click',(e)=>{
-      e.stopPropagation();
-      document.getElementById('modal').classList.remove('show');
-      startNav(t);
-    });
-    svBtn.addEventListener('click',(e)=>{
-      e.stopPropagation();
-      svTarget = t;
-      openStreetView();
-    });
-
-    btnWrap.appendChild(navBtn);
-    btnWrap.appendChild(svBtn);
-
-    const mBox = document.getElementById('modalBox');
-    mBox.insertBefore(btnWrap, document.getElementById('mBtn').nextSibling);
-  }
-
+  html+=`</div>`;
+  const box=document.getElementById('modalBox');
+  box.innerHTML=html;
   document.getElementById('modal').classList.add('show');
-}
-
-function closeModal() {
-  document.getElementById('modal').classList.remove('show');
-  modalTreasure = null;
-}
-
-// =============================================
-// ZONE LIST
-// =============================================
-function renderZones() {
-  const list = document.getElementById('list');
-  const sel = document.getElementById('zoneSelect');
-  list.innerHTML = '';
-
-  // Update select options
-  const prevVal = sel.value;
-  sel.innerHTML = '<option value="">-- All Zones --</option>';
-  for(const z of ZONES) {
-    const opt = document.createElement('option');
-    opt.value = z.id;
-    const total = treasures.filter(t=>t.z===z.id);
-    const found = total.filter(t=>t.c);
-    opt.textContent = `${z.icon} ${z.name} (${found.length}/${total.length})`;
-    sel.appendChild(opt);
-  }
-  sel.value = prevVal || '';
-
-  // Show zones or treasures
-  if(selectedZoneForList) {
-    showTreasuresForZone(selectedZoneForList, list);
-  } else {
-    showAllZones(list);
-  }
-}
-
-function showAllZones(container) {
-  for(const z of ZONES) {
-    const total = treasures.filter(t=>t.z===z.id);
-    const found = total.filter(t=>t.c);
-    const pct = total.length > 0 ? Math.round(found.length/total.length*100) : 0;
-    const unlocked = isZoneUnlocked(z.id);
-
-    const card = document.createElement('div');
-    card.className = 'zone-card';
-    card.innerHTML = `
-      <div class="ico">${z.icon}</div>
-      <div class="info">
-        <div class="zn">
-          <span>${z.name} <span style="color:#888;font-size:9px">${z.nameSi}</span></span>
-          <span class="pct">${pct}%</span>
-        </div>
-        <div class="bar"><div class="f" style="width:${pct}%;background:${z.color}"></div></div>
-      </div>
-      <div class="lock ${unlocked?'u':'l'}">${unlocked?'🔓':'🔒'}</div>
-    `;
-    card.addEventListener('click',()=>{
-      selectedZoneForList = z.id;
-      document.getElementById('zoneSelect').value = z.id;
-      showTreasuresForZone(z.id, container);
-    });
-    container.appendChild(card);
-  }
-}
-
-function showTreasuresForZone(zid, container) {
-  const zone = ZONES.find(z=>z.id===zid);
-  const zoneTreasures = treasures.filter(t=>t.z===zid);
-  const found = zoneTreasures.filter(t=>t.c);
-  const unlocked = isZoneUnlocked(zid);
-
-  // Header
-  const hdr = document.createElement('div');
-  hdr.style.cssText = 'padding:6px 4px;font-size:11px;color:var(--gold);display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,215,0,.1);margin-bottom:4px';
-  hdr.innerHTML = `<span>${zone?zone.icon:''} ${zone?zone.name:zid}</span><span>${found.length}/${zoneTreasures.length} · ${zoneTreasures.length>0?Math.round(found.length/zoneTreasures.length*100):0}%</span>`;
-  container.appendChild(hdr);
-
-  // Back button
-  const back = document.createElement('div');
-  back.style.cssText = 'padding:4px;font-size:11px;color:#888;cursor:pointer;margin-bottom:4px';
-  back.textContent = '← Back to all zones';
-  back.addEventListener('click',()=>{
-    selectedZoneForList = null;
-    document.getElementById('zoneSelect').value = '';
-    renderZones();
-  });
-  container.appendChild(back);
-
-  if(!unlocked) {
-    const locked = document.createElement('div');
-    locked.style.cssText = 'text-align:center;padding:20px;color:#555;font-size:12px';
-    locked.innerHTML = '🔒 This zone is locked<br><span style="font-size:10px">Collect treasures in connected zones to unlock</span>';
-    container.appendChild(locked);
-    return;
-  }
-
-  // Sort: nearby first, then uncollected
-  const sorted = [...zoneTreasures].sort((a,b)=>{
-    if(a.c!==b.c) return a.c?1:-1;
-    if(userPos) return getDist(a.lat,a.lng,userPos.lat,userPos.lng)-getDist(b.lat,b.lng,userPos.lat,userPos.lng);
-    return 0;
-  });
-
-  // Show only first 50 in list for performance, with show more
-  const showCount = Math.min(50, sorted.length);
-  for(let i=0;i<showCount;i++) {
-    const t = sorted[i];
-    const item = document.createElement('div');
-    item.className = 't-item';
-    const dist = userPos ? Math.round(getDist(userPos.lat,userPos.lng,t.lat,t.lng)) : 0;
-    const distStr = dist ? dist+'m' : '';
-    const isNear = userPos && dist < COLLECT_RADIUS*2;
-    const explored = isExplored(t.lat,t.lng);
-
-    item.innerHTML = `
-      <div class="ico">${t.c?'✅':isNear?'💫':t.ti.icon}</div>
-      <div class="inf">
-        <div class="nm">${t.n} ${isNear&&!t.c?'<span style="color:var(--cyan);font-size:9px">NEARBY!</span>':''}</div>
-        <div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>${'★'.repeat(t.d)}</span>${explored?'':' <span style="color:#666">❄️ fog</span>'}</div>
-      </div>
-      ${distStr ? `<div class="dist" style="color:${isNear?'var(--cyan)':'#555'}">📍${distStr}</div>` : ''}
-      <div class="st ${t.c?'f':isNear?'u':'m'}">${t.c?'✅':isNear?'💫':'⬜'}</div>
-      ${!t.c ? '<button class="fly-btn" style="background:rgba(0,255,136,.2);border:none;color:var(--cyan);padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer">🧭</button>' : ''}
-    `;
-    if(!t.c) {
-      const flyBtn = item.querySelector('.fly-btn');
-      if(flyBtn) {
-        flyBtn.addEventListener('click',(e)=>{
-          e.stopPropagation();
-          startNav(t);
-        });
+  box.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const i=parseInt(b.dataset.i);
+      if(i===tr.c){
+        playChime();
+        showToast(`✅ Correct! Bonus collected!`);
+        document.getElementById('modal').classList.remove('show');
+        collectTreasure(t);
+      }else{
+        playError();
+        showToast(`❌ Wrong! Try again next time`);
+        document.getElementById('modal').classList.remove('show');
+        // Still collect but no bonus
+        t.trivia=null;
+        collectTreasure(t);
       }
-      item.addEventListener('click',()=>{
-        if(!explored && !isNear) {
-          showToast('❄️ Hidden in fog - walk nearby to reveal');
-          map.flyTo([t.lat,t.lng],14);
-          return;
-        }
-        openModal(t);
-      });
+    });
+  });
+}
+
+// =============================================
+// DAILY STREAK
+// =============================================
+let lastDailyDate=localStorage.getItem('nd_lastDaily')||'';
+function checkDailyStreak(){
+  const today=new Date().toDateString();
+  if(lastDailyDate!==today){
+    dailyStreak++;
+    lastDailyDate=today;
+    localStorage.setItem('nd_lastDaily',today);
+    // Give powerup charge for streak
+    if(dailyStreak%3===0)addPowerupCharge(['magnet','radar','xray'][Math.random()*3|0]);
+    save();
+    renderProfile();
+  }
+}
+
+// =============================================
+// TIME ATTACK
+// =============================================
+function startTA(){
+  TA.active=true;TA.time=300;TA.score=0;
+  document.getElementById('taOverlay').classList.remove('show');
+  showToast('⚡ GO! Collect as many as possible!');
+  Snd.taGo();
+  if(TA.timer)clearInterval(TA.timer);
+  TA.timer=setInterval(()=>{
+    TA.time--;
+    const m=Math.floor(TA.time/60),s=TA.time%60;
+    document.getElementById('taTime').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    document.getElementById('taScore').textContent=`Score: ${TA.score}`;
+    if(TA.time<=0){
+      clearInterval(TA.timer);
+      TA.active=false;
+      Snd.taEnd();
+      showAchievement('⏱️',`TA Score: ${TA.score}!`);
+      document.getElementById('taOverlay').classList.add('show');
+      document.getElementById('taTime').textContent='0:00';
     }
-    container.appendChild(item);
-  }
+  },1000);
 
-  if(sorted.length > 50) {
-    const more = document.createElement('div');
-    more.style.cssText = 'text-align:center;padding:8px;font-size:10px;color:#555';
-    more.textContent = `+ ${sorted.length-50} more treasures in this zone`;
-    container.appendChild(more);
-  }
-}
-
-// =============================================
-// ACHIEVEMENTS & UNLOCKS
-// =============================================
-function checkAchievements() {
-  if(collectedTotal >= 50 && !achievements.has('50')) {
-    achievements.add('50'); showAchievement('🎯','Collected 50 treasures!'); save();
-  }
-  if(collectedTotal >= 200 && !achievements.has('200')) {
-    achievements.add('200'); showAchievement('🏆','Collected 200 treasures!'); save();
-  }
-  if(collectedTotal >= 500 && !achievements.has('500')) {
-    achievements.add('500'); showAchievement('💎','Collected 500 treasures!'); save();
-  }
-  if(collectedTotal >= 1000 && !achievements.has('1000')) {
-    achievements.add('1000'); showAchievement('👑','Collected 1000 treasures!'); save();
-  }
-  if(collectedTotal >= 2500 && !achievements.has('2500')) {
-    achievements.add('2500'); showAchievement('🌟','Collected 2500 treasures!'); save();
-  }
-  if(level >= 10 && !achievements.has('l10')) {
-    achievements.add('l10'); showAchievement('⭐','Reached Level 10!'); save();
-  }
-  if(level >= 25 && !achievements.has('l25')) {
-    achievements.add('l25'); showAchievement('🔥','Reached Level 25!'); save();
-  }
-
-  // Milestone: each zone has treasures collected (all zones now active)
-  const zoneCounts = {};
-  for(const z of ZONES) {
-    const f = treasures.filter(t=>t.c && t.z===z.id).length;
-    if(f >= 100) zoneCounts[z.id] = '100';
-    else if(f >= 50) zoneCounts[z.id] = '50';
-    else if(f >= 10) zoneCounts[z.id] = '10';
-  }
-  // Check zone milestones
-  const zoneM = Object.keys(zoneCounts).length;
-  if(zoneM >= 18 && !achievements.has('allZones10')) {
-    achievements.add('allZones10'); showAchievement('🗺️','Treasures in all 18 zones!'); save();
-  }
-}
-
-function queueUnlock(z) {
-  unlockQueue.push(z);
-}
-
-function processUnlocks() {
-  for(const z of unlockQueue) {
-    document.getElementById('unlockTitle').textContent = `🗺️ ${z.name} Complete!`;
-    document.getElementById('unlockDesc').textContent = `All ${treasures.filter(t=>t.z===z.id).length} treasures found in ${z.name}!`;
-    document.getElementById('unlockNotify').classList.add('show');
-    setTimeout(()=>document.getElementById('unlockNotify').classList.remove('show'),3000);
-  }
-  unlockQueue = [];
-}
-
-// =============================================
-// UI UPDATES
-// =============================================
-function updateHUD() {
-  const fnd = collectedTotal || treasures.filter(t=>t.c).length;
-  document.getElementById('scr').textContent = score;
-  document.getElementById('fnd').textContent = `${fnd}/${treasures.length}`;
-  document.getElementById('lvl').textContent = level;
-
-  // Zone bar
-  if(currentZone) {
-    const z = ZONES.find(zz=>zz.id===currentZone);
-    if(z) {
-      document.getElementById('zTitle').textContent = `${z.icon} ${z.nameSi} (${z.name})`;
-      const total = treasures.filter(t=>t.z===currentZone);
-      const found = total.filter(t=>t.c);
-      const pct = total.length > 0 ? Math.round(found.length/total.length*100) : 0;
-      document.getElementById('zPct').textContent = `${found.length}/${total.length} (${pct}%)`;
-      document.getElementById('zFill').style.width = Math.min(100,pct)+'%';
+  // Override collect for TA scoring
+  const origCollect=collectTreasure;
+  collectTreasure=function(t){
+    if(TA.active){
+      if(!t.c){
+        t.c=true;collectedTotal++;
+        const rw=t.ti.reward*t.d;
+        TA.score+=rw;
+        score+=rw;
+        playCollect();
+        haptic(20);
+        showToast(`⚡ ${rw} pts!`);
+        save();updateHUD();renderList();render();
+        return;
+      }
     }
-  }
-  document.getElementById('zoneTotal').textContent = collectedTotal || treasures.filter(t=>t.c).length;
-}
-
-// =============================================
-// NOTIFICATIONS
-// =============================================
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(()=>el.classList.remove('show'),2500);
-}
-
-function showAchievement(ico,text) {
-  const el = document.getElementById('achieve');
-  document.getElementById('aIcon').textContent = ico;
-  document.getElementById('aText').textContent = text;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(()=>el.classList.remove('show'),3000);
-}
-
-// =============================================
-// UTILITY
-// =============================================
-function getDist(lat1,lng1,lat2,lng2) {
-  const R = 6371000;
-  const dLat = (lat2-lat1)*Math.PI/180;
-  const dLng = (lng2-lng1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    origCollect.call(this,t);
+  };
 }
 
 // =============================================
 // NAVIGATION
 // =============================================
-function startNav(t) {
-  navTarget = t;
+function startNav(t){
+  navTarget=t;
   document.getElementById('navPanel').classList.add('show');
-  document.getElementById('nIcon').textContent = t.ti.icon;
-  document.getElementById('nTarget').textContent = `→ ${t.n} (${t.ti.id})`;
+  document.getElementById('nIcon').textContent=t.ti.icon;
+  document.getElementById('nTarget').textContent=`→ ${t.n}`;
   updateNav();
 }
 
-function stopNav() {
-  navTarget = null;
+function stopNav(){
+  navTarget=null;
   document.getElementById('navPanel').classList.remove('show');
-  if(navLine) { map.removeLayer(navLine); navLine = null; }
+  if(navLine){map.removeLayer(navLine);navLine=null}
 }
 
-function updateNav() {
-  if(!navTarget || !userPos) return;
-  const t = navTarget;
-  const d = getDist(userPos.lat,userPos.lng,t.lat,t.lng);
+function updateNav(){
+  if(!navTarget||!userPos)return;
+  const t=navTarget,d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
+  document.getElementById('nDist').textContent=d<1000?`${Math.round(d)}m`:`${(d/1000).toFixed(2)}km`;
 
-  document.getElementById('nDist').textContent = d < 1000 ? `${Math.round(d)}m` : `${(d/1000).toFixed(2)}km`;
+  const dLng=(t.lng-userPos.lng)*Math.PI/180;
+  const y=Math.sin(dLng)*Math.cos(t.lat*Math.PI/180);
+  const x=Math.cos(userPos.lat*Math.PI/180)*Math.sin(t.lat*Math.PI/180)-Math.sin(userPos.lat*Math.PI/180)*Math.cos(t.lat*Math.PI/180)*Math.cos(dLng);
+  const bearing=((Math.atan2(y,x)*180/Math.PI)+360)%360;
+  const dirs=['N','NE','E','SE','S','SW','W','NW'];
+  const dir=dirs[Math.round(bearing/45)%8];
 
-  // Bearing calculation
-  const dLng = (t.lng-userPos.lng)*Math.PI/180;
-  const y = Math.sin(dLng)*Math.cos(t.lat*Math.PI/180);
-  const x = Math.cos(userPos.lat*Math.PI/180)*Math.sin(t.lat*Math.PI/180)-Math.sin(userPos.lat*Math.PI/180)*Math.cos(t.lat*Math.PI/180)*Math.cos(dLng);
-  const bearing = (Math.atan2(y,x)*180/Math.PI+360)%360;
-  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
-  const dir = dirs[Math.round(bearing/45)%8];
+  let approach='→';
+  if(heading>=0){
+    const rel=((bearing-heading)+540)%360-180;
+    if(Math.abs(rel)<15)approach='→ Straight';
+    else if(rel>0&&rel<60)approach='↗ Right';
+    else if(rel>60)approach='↩ Turn back';
+    else if(rel<0&&rel>-60)approach='↖ Left';
+    else approach='↪ Turn back';
+  }else approach=dir;
 
-  // Show bearing relative to heading for "turn left/right" guidance
-  let approach = '';
-  if(heading >= 0) {
-    const rel = ((bearing - heading) + 540) % 360 - 180;
-    if(Math.abs(rel) < 15) approach = '→ Straight';
-    else if(rel > 0 && rel < 60) approach = '↗ Right';
-    else if(rel > 60) approach = '→ Turn back';
-    else if(rel < 0 && rel > -60) approach = '↖ Left';
-    else approach = '← Turn back';
-  } else {
-    approach = dir;
-  }
+  document.getElementById('nBear').textContent=`${dir} ${Math.round(bearing)}°`;
+  document.getElementById('nAppr').textContent=approach;
 
-  document.getElementById('nBear').textContent = `${dir} ${Math.round(bearing)}°`;
-  document.getElementById('nAppr').textContent = approach;
+  if(navLine)map.removeLayer(navLine);
+  navLine=L.polyline([[userPos.lat,userPos.lng],[t.lat,t.lng]],{color:'#0ff',weight:2,opacity:.5,dashArray:'6,8',interactive:false}).addTo(map);
 
-  // Draw line on map
-  if(navLine) map.removeLayer(navLine);
-  navLine = L.polyline([[userPos.lat,userPos.lng],[t.lat,t.lng]],{
-    color:'#0ff',weight:2,opacity:0.5,dashArray:'6,8',interactive:false
-  }).addTo(map);
-
-  // If within collect range, notify
-  if(d < COLLECT_RADIUS) {
-    showToast(`📦 ${t.n} is right here! Tap to collect`);
-    stopNav();
-    openModal(t);
-  }
+  if(d<COLLECT_RADIUS){showToast(`📦 ${t.n} is here!`);stopNav();openModal(t)}
 }
 
-// Update navigation every second when active
-setInterval(() => {
-  if(navTarget && userPos) {
-    updateNav();
-    if(streetViewActive) updateStreetView();
-  }
-  // Update compass
-  if(heading >= 0) {
-    const el = document.getElementById('compassRose');
-    el.style.transform = `rotate(${-heading}deg)`;
-  }
-}, 1000);
+setInterval(()=>{if(navTarget&&userPos)updateNav();if(heading>=0)document.getElementById('compassRose').style.transform=`rotate(${-heading}deg)`},1000);
 
 // =============================================
 // STREET VIEW
 // =============================================
-let svTarget = null;
-function openStreetView() {
-  const t = navTarget || modalTreasure;
-  if(!t) { showToast('Select a treasure first'); return; }
-  svTarget = t;
-  const iframe = document.getElementById('svFrame');
-  const url = `https://www.google.com/maps/embed/v1/streetview?key=&location=${t.lat},${t.lng}&heading=${Math.round(heading||0)}&pitch=10&fov=80`;
-  // Since API key is needed for embed, use the simpler web version
-  iframe.src = `https://maps.google.com/maps?q=${t.lat},${t.lng}&layer=c&cbll=${t.lat},${t.lng}&cbp=11,${Math.round(heading||0)},0,0,0`;
+let svTarget=null;
+function openStreetView(){
+  const t=navTarget||modalTreasure;
+  if(!t){showToast('Select a treasure first');return}
+  svTarget=t;
+  document.getElementById('svFrame').src=`https://maps.google.com/maps?q=${t.lat},${t.lng}&layer=c&cbll=${t.lat},${t.lng}&cbp=11,${Math.round(heading||0)},0,0,0`;
   document.getElementById('svOverlay').classList.add('show');
-  streetViewActive = true;
+}
+function closeStreetView(){document.getElementById('svOverlay').classList.remove('show');document.getElementById('svFrame').src='';svTarget=null}
+
+// =============================================
+// AR MODE
+// =============================================
+let arStream=null;
+async function openAR(){
+  try{
+    arStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    document.getElementById('arVideo').srcObject=arStream;
+    document.getElementById('arOverlay').classList.add('show');
+    if(navTarget){
+      const t=navTarget;
+      document.getElementById('arIcon').textContent=t.ti.icon;
+      updateAR();
+    }
+  }catch(e){showToast('📷 Camera access denied')}
 }
 
-function updateStreetView() {
-  if(!streetViewActive || !svTarget) return;
-  const iframe = document.getElementById('svFrame');
-  iframe.src = `https://maps.google.com/maps?q=${svTarget.lat},${svTarget.lng}&layer=c&cbll=${svTarget.lat},${svTarget.lng}&cbp=11,${Math.round(heading||0)},0,0,0`;
+function updateAR(){
+  if(!navTarget||!userPos)return;
+  const d=getDist(userPos.lat,userPos.lng,navTarget.lat,navTarget.lng);
+  document.getElementById('arDist').textContent=`📍 ${Math.round(d)}m`;
 }
 
-function closeStreetView() {
-  document.getElementById('svOverlay').classList.remove('show');
-  document.getElementById('svFrame').src = '';
-  streetViewActive = false;
-  svTarget = null;
+function closeAR(){
+  document.getElementById('arOverlay').classList.remove('show');
+  if(arStream){arStream.getTracks().forEach(t=>t.stop());arStream=null}
 }
 
+setInterval(()=>{if(document.getElementById('arOverlay').classList.contains('show'))updateAR()},2000);
 
+// =============================================
+// MAP CLICK
+// =============================================
+function onMapClick(e){
+  const {lat,lng}=e.latlng;
+  const cp=map.latLngToContainerPoint([lat,lng]);
+  let nearest=null,nd=30;
+  for(const t of treasures){
+    if(t.c)continue;
+    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*2))continue;
+    const tp=map.latLngToContainerPoint([t.lat,t.lng]);
+    const d=Math.sqrt((tp.x-cp.x)**2+(tp.y-cp.y)**2);
+    if(d<nd){nd=d;nearest=t}
+  }
+  if(nearest)openModal(nearest);
+}
 
-// Pulse nearby treasures every 2s
+// =============================================
+// MODAL
+// =============================================
+function openModal(t){
+  modalTreasure=t;
+  const box=document.getElementById('modalBox');
+  box.innerHTML=`
+    <div class="mi">${t.ti.icon}</div>
+    <h2>${t.n}</h2>
+    <div class="tag" style="background:${t.ti.color}30;color:${t.ti.color}">${t.ti.id.toUpperCase()}</div>
+    <div class="desc">${t.trivia?'❓ Trivia challenge available! ':''}${t.n} treasure in Sri Lanka!</div>
+    <div class="meta">${t.lat.toFixed(4)}, ${t.lng.toFixed(4)} · ${(ZONES.find(z=>z.id===t.z)||{}).nameSi||t.z}</div>
+    <div class="rw" style="color:${t.ti.color}">+${t.ti.reward*t.d} 🏆 ⭐${t.d}/5</div>
+    <div class="nrp" id="mNear">${userPos?`📍 ${Math.round(getDist(userPos.lat,userPos.lng,t.lat,t.lng))}m away`:'📍 GPS needed'}</div>
+    <div class="actions" id="mActions"></div>`;
+
+  const acts=document.getElementById('mActions');
+  if(t.c){
+    const b=document.createElement('button');b.textContent='✅ Collected';b.style.background='#444';b.style.color='#888';b.disabled=true;acts.appendChild(b);
+  }else{
+    const cb=document.createElement('button');cb.style.background='linear-gradient(135deg,var(--gold),var(--primary))';cb.style.color='var(--dark)';cb.textContent='📦 Collect';cb.addEventListener('click',e=>{e.stopPropagation();collectTreasure(t);document.getElementById('modal').classList.remove('show')});acts.appendChild(cb);
+    const nb=document.createElement('button');nb.style.background='linear-gradient(135deg,#0af,#0ff)';nb.textContent='🧭 Navigate';nb.addEventListener('click',e=>{e.stopPropagation();document.getElementById('modal').classList.remove('show');startNav(t)});acts.appendChild(nb);
+    const svb=document.createElement('button');svb.style.background='rgba(255,255,255,.08)';svb.textContent='🗺️ Street View';svb.addEventListener('click',e=>{e.stopPropagation();svTarget=t;openStreetView()});acts.appendChild(svb);
+    const arb=document.createElement('button');arb.style.background='rgba(255,255,255,.08)';arb.textContent='📷 AR';arb.addEventListener('click',e=>{e.stopPropagation();svTarget=t;openAR()});acts.appendChild(arb);
+  }
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('show');modalTreasure=null}
+
+// =============================================
+// LIST / TABS
+// =============================================
+function renderList(){
+  const list=document.getElementById('list');
+  list.innerHTML='';
+
+  if(selectedTab==='zones')renderZones();
+  else if(selectedTab==='nearby')renderNearby();
+  else if(selectedTab==='daily')renderDaily();
+}
+
+function renderZones(){
+  const list=document.getElementById('list');
+  for(const z of ZONES){
+    const total=treasures.filter(t=>t.z===z.id);
+    const found=total.filter(t=>t.c);
+    const pct=total.length?Math.round(found.length/total.length*100):0;
+    const card=document.createElement('div');
+    card.className='z-card';
+    card.innerHTML=`<div class="ico">${z.icon}</div><div class="info"><div class="zn"><span>${z.name} <span style="color:#888;font-size:8px">${z.nameSi}</span></span><span class="p">${pct}%</span></div><div class="b"><div class="f" style="width:${pct}%;background:${z.color}"></div></div></div>`;
+    list.appendChild(card);
+  }
+}
+
+function renderNearby(){
+  const list=document.getElementById('list');
+  if(!userPos){list.innerHTML='<div style="text-align:center;padding:20px;color:#555;font-size:11px">📍 GPS required</div>';return}
+
+  const near=treasures.filter(t=>!t.c&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4)
+    .sort((a,b)=>getDist(a.lat,a.lng,userPos.lat,userPos.lng)-getDist(b.lat,b.lng,userPos.lat,userPos.lng));
+
+  if(near.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#555;font-size:11px">📍 No treasures within 200m<br>Walk around to find more!</div>';return}
+
+  for(const t of near.slice(0,30)){
+    const d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
+    const item=document.createElement('div');
+    item.className='t-item';
+    const ex=isExplored(t.lat,t.lng);
+    item.innerHTML=`<div class="ico">${ex?t.ti.icon:'❄️'}</div><div class="if"><div class="nm">${t.n}${!ex?' <span style="color:#666;font-size:8px">fogged</span>':''}</div><div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>⭐${t.d}</span></div></div><div class="dst" style="color:${d<COLLECT_RADIUS?'var(--cyan)':'#555'}">📍${Math.round(d)}m</div><button class="nvbtn">🧭</button>`;
+    item.querySelector('.nvbtn').addEventListener('click',e=>{e.stopPropagation();startNav(t)});
+    item.addEventListener('click',()=>{if(!ex){showToast('❄️ Fogged - walk nearby');return}openModal(t)});
+    list.appendChild(item);
+  }
+}
+
+function renderDaily(){
+  const list=document.getElementById('list');
+  const daily=pickDailyTreasures();
+  if(daily.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#555;font-size:11px">⭐ No daily treasures available<br>Collect more to refresh!</div>';return}
+
+  const w=getWeather();
+  list.innerHTML=`<div style="padding:4px;font-size:9px;color:var(--gold);text-align:center;margin-bottom:4px">Today: ${w.icon} ${w.name} (${w.mult}x bonus)</div>`;
+
+  for(const t of daily){
+    const item=document.createElement('div');
+    item.className='t-item';
+    item.style.border='1px solid rgba(255,215,0,.2)';
+    const d=userPos?Math.round(getDist(userPos.lat,userPos.lng,t.lat,t.lng))+'m':'';
+    const bonus=t.ti.reward*t.d*2;
+    item.innerHTML=`<div class="ico">⭐${t.ti.icon}</div><div class="if"><div class="nm" style="color:var(--gold)">${t.n}</div><div class="sb"><span>${t.ti.icon} ${t.ti.id}</span><span>2x ${bonus}🏆</span></div></div>${d?`<div class="dst">📍${d}</div>`:''}<button class="nvbtn">🧭</button>`;
+    item.querySelector('.nvbtn').addEventListener('click',e=>{e.stopPropagation();startNav(t)});
+    item.addEventListener('click',()=>openModal(t));
+    list.appendChild(item);
+  }
+}
+
+// =============================================
+// GUEST BOOK
+// =============================================
+function postGB(){
+  const input=document.getElementById('gbInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  if(!userPos){showToast('📍 GPS needed');return}
+  guestBook.unshift({
+    name: msg.substring(0,100),
+    lat: userPos.lat,
+    lng: userPos.lng,
+    date: new Date().toLocaleDateString(),
+    zone: currentZone
+  });
+  input.value='';
+  renderGB();
+  save();
+  showToast('📖 Posted!');
+}
+
+function renderGB(){
+  const list=document.getElementById('gbList');
+  list.innerHTML='';
+  if(guestBook.length===0){list.innerHTML='<div style="color:#555;font-size:10px;padding:8px">No entries yet. Post your first!</div>';return}
+  for(const g of guestBook.slice(0,20)){
+    const el=document.createElement('div');
+    el.className='ge';
+    el.innerHTML=`<div class="gn">${g.name}</div><div class="gd">${g.date} · ${(ZONES.find(z=>z.id===g.zone)||{}).name||''} · ${g.lat.toFixed(2)},${g.lng.toFixed(2)}</div>`;
+    list.appendChild(el);
+  }
+}
+
+// =============================================
+// PROFILE
+// =============================================
+function renderProfile(){
+  document.getElementById('pScore').textContent=score;
+  document.getElementById('pFound').textContent=`${collectedTotal}/${treasures.length}`;
+  document.getElementById('pLevel').textContent=level;
+  document.getElementById('pCombo').textContent=bestCombo;
+  document.getElementById('pDistance').textContent=`${(totalTravelDist/1000).toFixed(1)}km`;
+  document.getElementById('pDaily').textContent=dailyStreak;
+
+  // Collections
+  const coll={};
+  for(const t of TYPES)coll[t.id]={icon:t.icon,total:0,found:0};
+  for(const t of treasures){coll[t.ti.id].total++;if(t.c)coll[t.ti.id].found++}
+  let ch='';
+  for(const c of Object.values(coll)){
+    ch+=`<span class="coll-item ${c.found===0?'dim':''}" title="${c.found}/${c.total}">${c.icon}${c.found>0?`<span class="cnt">${c.found}</span>`:''}</span>`;
+  }
+  document.getElementById('pCollections').innerHTML=ch;
+
+  // Achievements
+  const aList=['🎯 50','🏆 200','💎 500','👑 1000','🌟 2500','⭐ Lv10','🔥 Lv25','🗺️ All Zones'];
+  document.getElementById('pAchievements').innerHTML=aList.map(a=>`<span style="display:inline-block;margin:2px 3px;padding:2px 8px;border-radius:4px;font-size:9px;background:rgba(255,215,0,.1);color:#aaa">${a}</span>`).join('');
+
+  // Guestbook preview
+  renderGB();
+}
+
+// =============================================
+// ACHIEVEMENTS
+// =============================================
+function checkAchievements(){
+  if(collectedTotal>=50&&!achievements.has('50')){achievements.add('50');showAchievement('🎯','50 treasures!');save()}
+  if(collectedTotal>=200&&!achievements.has('200')){achievements.add('200');showAchievement('🏆','200 treasures!');save()}
+  if(collectedTotal>=500&&!achievements.has('500')){achievements.add('500');showAchievement('💎','500 treasures!');save()}
+  if(collectedTotal>=1000&&!achievements.has('1000')){achievements.add('1000');showAchievement('👑','1000 treasures!');save()}
+  if(collectedTotal>=2500&&!achievements.has('2500')){achievements.add('2500');showAchievement('🌟','2500 treasures!');save()}
+  if(level>=10&&!achievements.has('l10')){achievements.add('l10');showAchievement('⭐','Level 10!');save()}
+  if(level>=25&&!achievements.has('l25')){achievements.add('l25');showAchievement('🔥','Level 25!');save()}
+
+  // All zones visited
+  const zc={};
+  for(const t of treasures)if(t.c)zc[t.z]=(zc[t.z]||0)+1;
+  if(Object.keys(zc).length>=18&&!achievements.has('allZ')){achievements.add('allZ');showAchievement('🗺️','All zones visited!');save()}
+}
+
+// =============================================
+// UI UPDATES
+// =============================================
+function updateHUD(){
+  const fnd=collectedTotal||treasures.filter(t=>t.c).length;
+  document.getElementById('scr').textContent=score;
+  document.getElementById('fnd').textContent=`${fnd}/${treasures.length}`;
+  document.getElementById('lvl').textContent=level;
+
+  if(currentZone){
+    const z=ZONES.find(zz=>zz.id===currentZone);
+    if(z){
+      document.getElementById('zTitle').textContent=`${z.icon} ${z.nameSi} (${z.name})`;
+      const total=treasures.filter(t=>t.z===currentZone);
+      const found=total.filter(t=>t.c);
+      const pct=total.length?Math.round(found.length/total.length*100):0;
+      document.getElementById('zPct').textContent=`${found.length}/${total.length}`;
+      document.getElementById('zFill').style.width=Math.min(100,pct)+'%';
+    }
+  }
+  document.getElementById('zoneTotal').textContent=`${collectedTotal||treasures.filter(t=>t.c).length} treasures`;
+}
+
+// =============================================
+// NOTIFICATIONS
+// =============================================
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+function showAchievement(ico,text){
+  const el=document.getElementById('achieve');
+  document.getElementById('aIcon').textContent=ico;
+  document.getElementById('aText').textContent=text;
+  el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// Pulse
 setInterval(()=>{
-  if(!userPos || !ctx) return;
-  const Z = map.getZoom();
-  const s = map.getSize();
-  for(const t of treasures) {
-    if(t.c) continue;
-    if(!isExplored(t.lat,t.lng)) continue;
-    if(getDist(t.lat,t.lng,userPos.lat,userPos.lng) > COLLECT_RADIUS*2.5) continue;
-    const p = map.latLngToContainerPoint([t.lat,t.lng]);
-    if(p.x<0||p.x>s.x||p.y<0||p.y>s.y) continue;
-    const pulse = 1 + 0.15 * Math.sin(Date.now()/300);
-    ctx.font = `${Math.round(20*pulse)}px serif`;
-    ctx.shadowColor = t.ti.color;
-    ctx.shadowBlur = 20*(pulse-0.8);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(t.ti.icon,p.x,p.y);
-    ctx.shadowBlur = 0;
+  if(!userPos||!ctx)return;
+  const Z=map.getZoom(),s=map.getSize();
+  for(const t of treasures){
+    if(t.c)continue;
+    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*2))continue;
+    if(getDist(t.lat,t.lng,userPos.lat,userPos.lng)>COLLECT_RADIUS*2.5)continue;
+    const p=map.latLngToContainerPoint([t.lat,t.lng]);
+    if(p.x<0||p.x>s.x||p.y<0||p.y>s.y)continue;
+    const pulse=1+.15*Math.sin(Date.now()/300);
+    ctx.font=`${Math.round(20*pulse)}px serif`;ctx.shadowColor=t.ti.color;ctx.shadowBlur=20*(pulse-.8);
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.ti.icon,p.x,p.y);ctx.shadowBlur=0;
   }
 },2000);
+
+// Weather notification on hour
+setInterval(()=>{
+  const w=getWeather();
+},3600000);
+
+// PWA - register service worker for install
+if('serviceWorker' in navigator){
+  const swCode=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response('Offline',{status:503}))))`;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
 
 // =============================================
 // START
 // =============================================
-document.addEventListener('DOMContentLoaded',()=>{
-  init();
-});
+document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
