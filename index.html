@@ -184,6 +184,66 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 @keyframes accPulse{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
 @media(min-width:768px){#bottom{max-height:32vh}}
 @media(max-height:600px){#bottom{max-height:46vh}#bottom.collapsed{transform:translateY(calc(100% - 32px))}}
+
+/* ===== NEW FEATURES ===== */
+/* Tile Switcher */
+#tileSwitcher{position:absolute;top:100px;left:6px;z-index:10;display:flex;flex-direction:column;gap:2px}
+#tileSwitcher button{width:34px;height:34px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(5,5,20,.85);color:#aaa;font-size:14px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+#tileSwitcher button.active{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.1)}
+
+/* Walk Path */
+.walk-path{stroke:rgba(0,255,136,.3);stroke-width:2;fill:none;stroke-linejoin:round}
+
+/* Sinhala Toggle */
+#siToggle{position:absolute;top:100px;right:6px;z-index:10;width:34px;height:34px;border-radius:6px;border:1px solid rgba(255,215,0,.12);background:rgba(5,5,20,.85);color:var(--gold);font-size:11px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-weight:700}
+#siToggle.active{background:rgba(255,215,0,.15);border-color:var(--gold)}
+
+/* Radar Mini-map */
+#radarMini{position:absolute;bottom:130px;left:6px;z-index:10;width:64px;height:64px;border-radius:50%;background:rgba(5,5,20,.88);border:1px solid rgba(255,215,0,.15);pointer-events:none;backdrop-filter:blur(4px)}
+#radarMini canvas{width:100%;height:100%;border-radius:50%}
+
+/* Day/Night overlay */
+#dnOverlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity 2s}
+
+/* Encyclopedia */
+#encyc{position:fixed;inset:0;z-index:100;display:none;background:rgba(5,5,20,.97);backdrop-filter:blur(8px);padding:16px;overflow-y:auto}
+#encyc.show{display:block}
+#encyc .eh{font-size:16px;color:var(--gold);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+#encyc .eh button{background:var(--accent);border:none;color:#fff;padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer}
+#encyc .eg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+#encyc .ec{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.1);border-radius:8px;padding:8px;text-align:center}
+#encyc .ec .ei{font-size:22px}
+#encyc .ec .en{font-size:10px;color:#eee;margin:4px 0}
+#encyc .ec .ed{font-size:8px;color:#666}
+
+/* Achievement Badges */
+#badges{position:fixed;inset:0;z-index:100;display:none;background:rgba(5,5,20,.97);backdrop-filter:blur(8px);padding:16px;overflow-y:auto}
+#badges.show{display:block}
+#badges .bh{font-size:16px;color:var(--gold);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+#badges .bh button{background:var(--accent);border:none;color:#fff;padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer}
+#badges .bg{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:4px}
+#badges .bc{background:rgba(255,255,255,.04);border-radius:8px;padding:8px 4px;text-align:center;transition:.2s}
+#badges .bc.locked{opacity:.25;filter:grayscale(1)}
+#badges .bc .bi{font-size:20px}
+#badges .bc .bl{font-size:7px;color:#aaa;margin-top:2px}
+
+/* Share Overlay */
+#shareOverlay{position:fixed;inset:0;z-index:200;display:none;background:rgba(5,5,20,.95);align-items:center;justify-content:center}
+#shareOverlay.show{display:flex}
+#shareOverlay .sb{background:rgba(255,255,255,.06);border:1px solid rgba(255,215,0,.2);border-radius:14px;padding:20px;max-width:300px;width:85%;text-align:center}
+#shareOverlay .sb textarea{width:100%;height:80px;background:rgba(255,255,255,.05);border:1px solid rgba(255,215,0,.15);border-radius:8px;color:#fff;padding:8px;font-size:11px;margin:10px 0;resize:none}
+#shareOverlay .sb button{background:linear-gradient(135deg,var(--gold),var(--primary));border:none;color:var(--dark);padding:8px 20px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;margin:3px}
+
+/* Export/Import */
+#importFile{display:none}
+
+/* Set display */
+.set-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border-radius:8px;padding:8px;margin-bottom:4px}
+.set-item .sp{flex:1;font-size:10px;color:#aaa}
+.set-item .sp .sn{font-size:11px;color:#fff;font-weight:600}
+.set-item .sbar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;overflow:hidden}
+.set-item .sbar .sf{height:100%;border-radius:2px;transition:width .5s}
+.set-item .sst{font-size:9px;color:var(--gold);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -228,6 +288,18 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 <div id="compassRose"><span class="n">N</span><span class="d" id="compassDir">↑</span></div>
 <div id="collectRing">📡</div>
 <div id="dirArrow">🧭</div>
+
+<!-- Tile Switcher -->
+<div id="tileSwitcher"><button id="tileOsm" class="active" title="Map">🗺️</button><button id="tileSat" title="Satellite">🛰️</button><button id="tileTerrain" title="Terrain">⛰️</button></div>
+
+<!-- Sinhala Toggle & Encyclopedia Buttons -->
+<button id="siToggle" title="සිංහල">🇱🇰</button>
+
+<!-- Radar Mini-map -->
+<div id="radarMini"><canvas id="radarCanvas" width="64" height="64"></canvas></div>
+
+<!-- Day/Night overlay -->
+<div id="dnOverlay"></div>
 
 <!-- Bottom Sheet -->
 <div id="bottom">
@@ -291,6 +363,32 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 
 <div id="toast"></div>
 <div id="achieve"><span class="ai" id="aIcon">🏆</span><span id="aText">Achievement!</span></div>
+
+<div id="enc" class="ecyc" style="display:none">
+  <!-- Encyclopedia -->
+  <div id="encyc">
+    <div class="eh"><span>📚 Treasure Encyclopedia</span><button id="encycClose">✕ Close</button></div>
+    <div class="eg" id="encycGrid"></div>
+  </div>
+</div>
+
+<div id="badges">
+  <div class="bh"><span>🏅 Achievement Badges</span><button id="badgesClose">✕ Close</button></div>
+  <div class="bg" id="badgesGrid"></div>
+</div>
+
+<div id="shareOverlay">
+  <div class="sb">
+    <div style="font-size:28px;margin-bottom:6px" id="shareIcon">💎</div>
+    <h3 style="font-size:13px;color:var(--gold);margin-bottom:4px" id="shareTitle">Treasure Found!</h3>
+    <textarea id="shareText" readonly></textarea>
+    <button id="shareWhatsApp">📱 WhatsApp</button>
+    <button id="shareCopy">📋 Copy</button>
+    <button id="shareClose" style="background:rgba(255,255,255,.08);color:#aaa">✕ Close</button>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept=".json">
 
 <script>
 // =============================================
@@ -547,8 +645,50 @@ let comboCount=0,comboTimer=null,bestComboSession=0;
 const TA={active:false,time:300,score:0,timer:null};
 
 // Adaptive GPS
-let gpsMode='high'; // high, balanced, low
+let gpsMode='high';
 let lastSpeed=0;
+
+// ===== NEW FEATURES STATE =====
+let siLang=false;
+let tileLayer='osm';
+let walkPathPoints=[];
+let walkPathPolyline=null;
+let tileLayers={};
+let lastVibratedAt={};
+const SETS=[
+  {id:'gems',name:'Gems of Ratnapura',icon:'💎',type:'gem',need:5},
+  {id:'wild',name:'Wildlife Safari',icon:'🐘',type:'wildlife',need:5},
+  {id:'falls',name:'Waterfall Trail',icon:'💧',type:'waterfall',need:5},
+  {id:'forts',name:'Heritage Forts',icon:'🏛️',type:'heritage',need:5},
+  {id:'temple',name:'Sacred Temples',icon:'🛕',type:'temple',need:5},
+  {id:'ruins',name:'Ancient Ruins',icon:'🏚️',type:'ruins',need:5},
+  {id:'pearls',name:'Pearl Collection',icon:'🔮',type:'pearl',need:3}
+];
+const ACHIEVEMENT_BADGES=[
+  {id:'b50',icon:'🎯',name:'Starter',desc:'Collect 50',check:()=>collectedTotal>=50},
+  {id:'b200',icon:'🏆',name:'Hunter',desc:'Collect 200',check:()=>collectedTotal>=200},
+  {id:'b500',icon:'💎',name:'Prospector',desc:'Collect 500',check:()=>collectedTotal>=500},
+  {id:'b1000',icon:'👑',name:'Treasure King',desc:'Collect 1000',check:()=>collectedTotal>=1000},
+  {id:'b2500',icon:'🌟',name:'Legend',desc:'Collect 2500',check:()=>collectedTotal>=2500},
+  {id:'l10',icon:'⭐',name:'Apprentice',desc:'Level 10',check:()=>level>=10},
+  {id:'l25',icon:'🔥',name:'Master',desc:'Level 25',check:()=>level>=25},
+  {id:'combo5',icon:'⚡',name:'On Fire!',desc:'Combo x5',check:()=>bestCombo>=5},
+  {id:'combo10',icon:'💫',name:'Unstoppable',desc:'Combo x10',check:()=>bestCombo>=10},
+  {id:'walk10',icon:'🚶',name:'Walker',desc:'Walk 10km',check:()=>totalTravelDist>=10000},
+  {id:'walk50',icon:'🏃',name:'Marathoner',desc:'Walk 50km',check:()=>totalTravelDist>=50000},
+  {id:'streak7',icon:'📅',name:'Weekly',desc:'7 day streak',check:()=>dailyStreak>=7},
+  {id:'streak30',icon:'🗓️',name:'Monthly',desc:'30 day streak',check:()=>dailyStreak>=30},
+  {id:'allz',icon:'🗺️',name:'Explorer',desc:'All zones',check:()=>{const z={};treasures.forEach(t=>{if(t.c)z[t.z]=1});return Object.keys(z).length>=18}}
+];
+const SI={
+  treasure:'නිධානය',collect:'එකතු කරන්න',score:'ලකුණු',found:'හම්බුණා',level:'මට්ටම',
+  navigate:'ගමන් කරන්න',street:'වීදි දසුන',stop:'නවත්වන්න',profile:'පැතිකඩ',
+  nearby:'අසල',daily:'දෛනික',zones:'කලාප',map:'සිතියම',satellite:'චන්ද්‍රිකා',
+  settings:'සැකසුම්',close:'වසන්න',back:'ආපසු',loading:'පූරණය වෙමින්',
+  gps:'ස්ථානය',collectNow:'එකතු කරන්න',powerup:'බලය',rush:'ඉක්මන්',
+  encyclopedia:'විශ්වකෝෂය',badges:'පදක්කම්',share:'බෙදාගන්න',export:'අපනයනය',
+  import:'ආනයනය',walked:'ඇවිද්ද',combo:'දාමය',streak:'අඛණ්ඩතාව'
+};
 
 // =============================================
 // SAVE/LOAD
@@ -650,6 +790,60 @@ function init(){
 
   // Modal
   document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+  // ===== NEW FEATURES INIT =====
+  // Tile switcher
+  document.getElementById('tileOsm').addEventListener('click',()=>switchTile('osm'));
+  document.getElementById('tileSat').addEventListener('click',()=>switchTile('sat'));
+  document.getElementById('tileTerrain').addEventListener('click',()=>switchTile('terrain'));
+
+  // Sinhala toggle
+  document.getElementById('siToggle').addEventListener('click',()=>{siLang=!siLang;document.getElementById('siToggle').classList.toggle('active');applySinhala();showToast(siLang?'🇱🇰 සිංහල':'🇬🇧 English')});
+
+  // Encyclopedia
+  document.getElementById('encycClose').addEventListener('click',()=>document.getElementById('encyc').classList.remove('show'));
+  // Badges
+  document.getElementById('badgesClose').addEventListener('click',()=>document.getElementById('badges').classList.remove('show'));
+
+  // Share
+  document.getElementById('shareWhatsApp').addEventListener('click',()=>{
+    const t=document.getElementById('shareText');
+    window.open('https://wa.me/?text='+encodeURIComponent(t.value),'_blank');
+  });
+  document.getElementById('shareCopy').addEventListener('click',()=>{
+    const t=document.getElementById('shareText');
+    t.select();navigator.clipboard.writeText(t.value).then(()=>showToast('✅ Copied!'));
+  });
+  document.getElementById('shareClose').addEventListener('click',()=>document.getElementById('shareOverlay').classList.remove('show'));
+
+  // Export/Import
+  document.getElementById('profile').querySelector('.ph').insertAdjacentHTML('beforeend','<span style="display:flex;gap:4px"><button id="exportBtn" style="background:rgba(0,255,136,.15);color:var(--cyan);border:none;padding:2px 8px;border-radius:4px;font-size:9px;cursor:pointer">📤</button><button id="importBtn" style="background:rgba(255,215,0,.15);color:var(--gold);border:none;padding:2px 8px;border-radius:4px;font-size:9px;cursor:pointer">📥</button></span>');
+  setTimeout(()=>{
+    document.getElementById('exportBtn').addEventListener('click',exportSave);
+    document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+    document.getElementById('importFile').addEventListener('change',importSave);
+  },100);
+
+  // Day/Night overlay
+  updateDayNight();
+
+  // Radar mini-map
+  setInterval(updateRadarMini,2000);
+
+  // Walk path
+  setInterval(()=>{
+    if(walkPathPolyline&&map&&walkPathPoints.length>1){
+      if(walkPathPolyline)map.removeLayer(walkPathPolyline);
+      walkPathPolyline=L.polyline(walkPathPoints,{className:'walk-path',interactive:false}).addTo(map);
+    }
+  },5000);
+
+  // Add encyclopedia & badges buttons to profile
+  document.getElementById('profile').querySelector('.ph').insertAdjacentHTML('beforeend','<span style="display:flex;gap:4px"><button id="encycBtn" style="background:rgba(255,215,0,.1);color:var(--gold);border:none;padding:2px 8px;border-radius:4px;font-size:9px;cursor:pointer">📚</button><button id="badgesBtn" style="background:rgba(255,215,0,.1);color:var(--gold);border:none;padding:2px 8px;border-radius:4px;font-size:9px;cursor:pointer">🏅</button></span>');
+  setTimeout(()=>{
+    document.getElementById('encycBtn').addEventListener('click',()=>{renderEncyclopedia();document.getElementById('encyc').classList.add('show')});
+    document.getElementById('badgesBtn').addEventListener('click',()=>{renderBadges();document.getElementById('badges').classList.add('show')});
+  },100);
 
   // GPS
   if(navigator.geolocation)startGps();
@@ -1412,6 +1606,234 @@ if('serviceWorker' in navigator){
   const url=URL.createObjectURL(blob);
   navigator.serviceWorker.register(url).catch(()=>{});
 }
+
+// =============================================
+// NEW FEATURES
+// =============================================
+
+// --- TILE SWITCHER ---
+function switchTile(mode){
+  tileLayer=mode;
+  document.querySelectorAll('#tileSwitcher button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tileOsm').classList.toggle('active',mode==='osm');
+  document.getElementById('tileSat').classList.toggle('active',mode==='sat');
+  document.getElementById('tileTerrain').classList.toggle('active',mode==='terrain');
+
+  // Remove existing tile layer
+  if(window._tileLayer)map.removeLayer(window._tileLayer);
+
+  const urls={
+    osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    terrain:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
+  };
+  const attrs={
+    osm:'&copy; OpenStreetMap',
+    sat:'&copy; Esri',
+    terrain:'&copy; OpenTopoMap'
+  };
+  window._tileLayer=L.tileLayer(urls[mode],{maxZoom:18,attribution:attrs[mode]}).addTo(map);
+  showToast(mode==='osm'?'🗺️ Map':mode==='sat'?'🛰️ Satellite':'⛰️ Terrain');
+}
+
+// --- SINHALA UI ---
+function applySinhala(){
+  if(!siLang)return;
+  document.querySelectorAll('[data-si]').forEach(el=>{
+    const key=el.dataset.si;
+    if(SI[key])el.textContent=SI[key];
+  });
+}
+
+// --- DAY/NIGHT ---
+function updateDayNight(){
+  const h=new Date().getHours();
+  const el=document.getElementById('dnOverlay');
+  if(h<6||h>=19){el.style.background='rgba(5,5,30,0.35)';el.style.zIndex=2}
+  else if(h<7||h>=18){el.style.background='rgba(5,5,30,0.2)';el.style.zIndex=2}
+  else{el.style.background='transparent';el.style.zIndex=0}
+}
+
+// --- WALK PATH ---
+function addWalkPoint(lat,lng){
+  walkPathPoints.push([lat,lng]);
+  if(walkPathPoints.length>1000)walkPathPoints.splice(0,walkPathPoints.length-1000);
+}
+
+// --- RADAR MINI-MAP ---
+function updateRadarMini(){
+  if(!userPos||!ctx)return;
+  const c=document.getElementById('radarCanvas');
+  if(!c)return;
+  const cx=c.getContext('2d');
+  const W=64,H=64;
+  cx.clearRect(0,0,W,H);
+
+  // Background
+  cx.fillStyle='rgba(5,5,22,0)';
+  cx.beginPath();cx.arc(32,32,30,0,Math.PI*2);cx.fill();
+
+  // Radar sweep
+  const sweep=(Date.now()/2000)%(Math.PI*2);
+  cx.beginPath();cx.moveTo(32,32);cx.arc(32,32,30,sweep-0.5,sweep);cx.closePath();
+  cx.fillStyle='rgba(0,255,136,0.08)';cx.fill();
+
+  // Find nearby treasures
+  const near=treasures.filter(t=>!t.c&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<200);
+  for(const t of near){
+    const d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
+    const angle=Math.atan2(t.lng-userPos.lng,t.lat-userPos.lat)-heading*Math.PI/180;
+    const r=(d/200)*28;
+    const x=32+r*Math.cos(angle);
+    const y=32+r*Math.sin(angle);
+    if(x<2||x>62||y<2||y>62)continue;
+    cx.beginPath();cx.arc(x,y,3,0,Math.PI*2);
+    cx.fillStyle=t.ti.color;
+    cx.fill();
+    cx.shadowColor=t.ti.color;cx.shadowBlur=6;cx.fill();cx.shadowBlur=0;
+  }
+
+  // Center dot
+  cx.beginPath();cx.arc(32,32,2,0,Math.PI*2);
+  cx.fillStyle='#0af';cx.fill();
+}
+
+// --- ENCYCLOPEDIA ---
+function renderEncyclopedia(){
+  const grid=document.getElementById('encycGrid');
+  grid.innerHTML='';
+  const collected=treasures.filter(t=>t.c).sort((a,b)=>b.d-a.d).slice(0,200);
+  if(collected.length===0){grid.innerHTML='<div style="color:#555;padding:20px;text-align:center">No treasures collected yet</div>';return}
+  for(const t of collected){
+    const zone=ZONES.find(z=>z.id===t.z);
+    const el=document.createElement('div');el.className='ec';
+    el.innerHTML=`<div class="ei">${t.ti.icon}</div><div class="en">${t.n}</div><div class="ed">⭐${t.d} · ${zone?zone.nameSi:t.z}</div>`;
+    grid.appendChild(el);
+  }
+}
+
+// --- BADGES ---
+function renderBadges(){
+  const grid=document.getElementById('badgesGrid');
+  grid.innerHTML='';
+  for(const b of ACHIEVEMENT_BADGES){
+    const unlocked=b.check();
+    const el=document.createElement('div');el.className='bc'+(unlocked?'':' locked');
+    el.innerHTML=`<div class="bi">${b.icon}</div><div class="bl">${b.name}</div>`;
+    grid.appendChild(el);
+  }
+}
+
+// --- SHARE ---
+function shareTreasure(t){
+  if(!t)return;
+  const zone=ZONES.find(z=>z.id===t.z);
+  const text=`🏆 නිදන් Hunt - Sri Lanka!
+${t.ti.icon} ${t.n}
+📍 ${t.lat.toFixed(4)}, ${t.lng.toFixed(4)}
+🏘️ ${zone?zone.name:''}
+⭐ Difficulty ${t.d}/5
+🎯 ${t.ti.reward*t.d} points
+
+🔗 https://maps.google.com/maps?q=${t.lat},${t.lng}
+#නිදන්Hunt #SriLanka #TreasureHunt`;
+  document.getElementById('shareIcon').textContent=t.ti.icon;
+  document.getElementById('shareTitle').textContent=t.n;
+  document.getElementById('shareText').value=text;
+  document.getElementById('shareOverlay').classList.add('show');
+}
+
+// --- EXPORT/IMPORT ---
+function exportSave(){
+  const data={
+    s:score,l:level,x:xp,ex:exploredLocs,
+    tr:treasures.filter(t=>t.c).map(t=>t.id),
+    ac:[...achievements],bc:bestCombo,td:totalTravelDist,ds:dailyStreak,
+    wpp:walkPathPoints,
+    pu:{m:PU.magnet.left,r:PU.radar.left,x:PU.xray.left}
+  };
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`nidan-hunt-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);
+  showToast('📤 Game saved!');
+}
+
+function importSave(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const d=JSON.parse(ev.target.result);
+      score=d.s||0;level=d.l||1;xp=d.x||0;
+      exploredLocs=d.ex||[];
+      achievements=new Set(d.ac||[]);
+      bestCombo=d.bc||0;totalTravelDist=d.td||0;dailyStreak=d.ds||0;
+      walkPathPoints=d.wpp||[];
+      if(d.pu){PU.magnet.left=d.pu.m||1;PU.radar.left=d.pu.r||1;PU.xray.left=d.pu.x||1}
+      const col=new Set(d.tr||[]);
+      for(const t of treasures)t.c=col.has(t.id);
+      collectedTotal=treasures.filter(t=>t.c).length;
+      save();updateHUD();renderList();render();updatePUButtons();
+      showToast('📥 Game imported!');
+    }catch(err){showToast('❌ Invalid file')}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// --- AUTO RESPAWN ---
+function checkRespawn(){
+  const today=new Date().toDateString();
+  const lastCheck=localStorage.getItem('nd_respawn')||'';
+  if(lastCheck!==today){
+    // Respawn 10% of collected treasures
+    const collected=treasures.filter(t=>t.c);
+    const count=Math.max(1,Math.floor(collected.length*0.1));
+    for(let i=0;i<count&&i<collected.length;i++){
+      const idx=Math.random()*collected.length|0;
+      collected[idx].c=false;
+      collectedTotal--;
+      collected.splice(idx,1);
+    }
+    localStorage.setItem('nd_respawn',today);
+    if(count>0)showToast(`🔄 ${count} treasures respawned!`);
+    save();
+  }
+}
+
+// --- TREASURE SETS ---
+function getSetProgress(){
+  return SETS.map(s=>{
+    const found=treasures.filter(t=>t.c&&t.ti.id===s.type);
+    return{...s,found:found.length,pct:Math.min(100,Math.round(found.length/s.need*100))};
+  });
+}
+
+// --- NEARBY VIBRATE ---
+function checkNearbyVibrate(lat,lng){
+  for(const t of treasures){
+    if(t.c)continue;
+    const d=getDist(lat,lng,t.lat,t.lng);
+    if(d<COLLECT_RADIUS&&(!lastVibratedAt[t.id]||Date.now()-lastVibratedAt[t.id]>10000)){
+      haptic(100);
+      Snd.collect();
+      lastVibratedAt[t.id]=Date.now();
+      showToast(`💫 ${t.n} is nearby! (${Math.round(d)}m)`);
+    }
+  }
+}
+
+// Modify onPos to add walk path + nearby vibrate (patch via interval)
+let _origOnPos=onPos;
+onPos=function(pos){
+  _origOnPos(pos);
+  const {latitude,longitude}=pos.coords;
+  addWalkPoint(latitude,longitude);
+  checkNearbyVibrate(latitude,longitude);
+  updateDayNight();
+};
 
 // =============================================
 // START
