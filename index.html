@@ -472,41 +472,42 @@ const KALPITIYA_NAMES = [
 function genKalpitiyaTreasures(startId){
   const all=[];
   const types=TYPES.map(t=>({...t,reward:Math.round(t.reward*0.3)}));
-  // Area: 8.14-8.30 lat, 79.70-79.80 lng
   const MIN_LAT=8.14,MAX_LAT=8.30,MIN_LNG=79.70,MAX_LNG=79.80;
-  // 300 treasures: grid + jitter + named locations
-  const gridSize=Math.ceil(Math.sqrt(300))*2; // ~35x35 grid = 1225 points, filter later
-  const latStep=(MAX_LAT-MIN_LAT)/gridSize;
-  const lngStep=(MAX_LNG-MIN_LNG)/gridSize;
   let id=startId,namedIdx=0;
 
-  // First pass: place named treasures at specific spots
-  for(let i=0;i<100;i++){
+  // 20 cluster centers covering Kalpitiya/Thalawila peninsula
+  const centers=[
+    [8.230,79.770],[8.200,79.745],[8.180,79.755],[8.215,79.760],[8.240,79.775],
+    [8.190,79.740],[8.225,79.765],[8.170,79.750],[8.235,79.780],[8.205,79.750],
+    [8.255,79.778],[8.160,79.748],[8.220,79.752],[8.195,79.770],[8.210,79.780],
+    [8.175,79.760],[8.245,79.772],[8.185,79.745],[8.230,79.758],[8.200,79.768]
+  ];
+
+  // First pass: 200 named treasures around centers
+  for(let i=0;i<200;i++){
     const name=KALPITIYA_NAMES[namedIdx%KALPITIYA_NAMES.length];
     namedIdx++;
-    // Distribute around key Kalpitiya landmarks
-    const centers=[
-      [8.230,79.770],[8.200,79.745],[8.180,79.755],[8.215,79.760],[8.240,79.775],
-      [8.190,79.740],[8.225,79.765],[8.170,79.750],[8.235,79.780],[8.205,79.750]
-    ];
     const c=centers[i%centers.length];
-    const lat=c[0]+(Math.random()-.5)*0.025;
-    const lng=c[1]+(Math.random()-.5)*0.025;
+    const lat=c[0]+(Math.random()-.5)*0.030;
+    const lng=c[1]+(Math.random()-.5)*0.030;
     if(lat<MIN_LAT||lat>MAX_LAT||lng<MIN_LNG||lng>MAX_LNG)continue;
     const t=types[Math.random()*types.length|0];
     all.push({id:id++,z:'kalpitiya',lat,lng,ti:t,n:name,d:1+Math.random()*5|0,c:false,trivia:null});
   }
 
-  // Second pass: grid fill for remaining 200
+  // Second pass: fine grid fill for 600 more treasures
+  const gridSize=40;
+  const latStep=(MAX_LAT-MIN_LAT)/gridSize;
+  const lngStep=(MAX_LNG-MIN_LNG)/gridSize;
   let placed=0;
-  const suffixes=[' Cove',' Point',' Beach',' Reef',' Spot',' View',' Trail',' Bay'];
-  for(let i=0;i<gridSize&&placed<200;i++){
-    for(let j=0;j<gridSize&&placed<200;j++){
+  const suffixes=[' Cove',' Point',' Beach',' Reef',' Spot',' View',' Trail',' Bay',' Dunes',' Shore'];
+  for(let i=0;i<gridSize&&placed<600;i++){
+    for(let j=0;j<gridSize&&placed<600;j++){
       const lat=MIN_LAT+(i+.5)*latStep+(Math.random()-.5)*latStep*.6;
       const lng=MIN_LNG+(j+.5)*lngStep+(Math.random()-.5)*lngStep*.6;
       if(lat<MIN_LAT||lat>MAX_LAT||lng<MIN_LNG||lng>MAX_LNG)continue;
       let skip=false;
-      for(const a of all){if(getDist(lat,lng,a.lat,a.lng)<80){skip=true;break}}
+      for(const a of all){if(getDist(lat,lng,a.lat,a.lng)<15){skip=true;break}}
       if(skip)continue;
       const t=types[Math.random()*types.length|0];
       const base=KALPITIYA_NAMES[Math.random()*KALPITIYA_NAMES.length|0].split(' ').slice(-1)[0];
@@ -739,6 +740,7 @@ function init(){
 
   treasures=genTreasures();
   load();
+  checkRespawn();
   updatePUButtons();
 
   resizeCanvas();
@@ -945,11 +947,11 @@ function onPos(pos){
 
   updateHUD();renderList();render();
 
-  const nearCount=treasures.filter(t=>!t.c&&getDist(lat,lng,t.lat,t.lng)<COLLECT_RADIUS*2).length;
+  const nearCount=treasures.filter(t=>!t.c&&getDist(lat,lng,t.lat,t.lng)<COLLECT_RADIUS*3).length;
   document.getElementById('collectRing').classList.toggle('show',nearCount>0);
 
-  // Arrow
-  let nt=null,ntd=COLLECT_RADIUS*8;
+  // Arrow — nearest uncollected treasure regardless of distance
+  let nt=null,ntd=Infinity;
   for(const t of treasures){if(t.c)continue;const d=getDist(lat,lng,t.lat,t.lng);if(d<ntd){ntd=d;nt=t}}
   const arrow=document.getElementById('dirArrow');
   if(nt){const a=Math.atan2(nt.lng-lng,nt.lat-lat)*180/Math.PI;const s=ntd<1000?`${Math.round(ntd)}m`:`${(ntd/1000).toFixed(1)}km`;arrow.textContent=`🧭 ${s}`;arrow.style.transform=`translateX(-50%) rotate(${a}deg)`;arrow.classList.add('show')}
@@ -1035,8 +1037,8 @@ function render(){
   for(const t of treasures){
     if(t.c)continue;
     const ex=isExplored(t.lat,t.lng);
-    const near=userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*2;
-    const radarVis=radarActive&&userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<200;
+    const near=userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4;
+    const radarVis=radarActive&&userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<400;
 
     if(!ex&&!near&&!radarVis)continue;
 
@@ -1354,7 +1356,7 @@ function onMapClick(e){
   let nearest=null,nd=30;
   for(const t of treasures){
     if(t.c)continue;
-    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*2))continue;
+    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4))continue;
     const tp=map.latLngToContainerPoint([t.lat,t.lng]);
     const d=Math.sqrt((tp.x-cp.x)**2+(tp.y-cp.y)**2);
     if(d<nd){nd=d;nearest=t}
@@ -1584,8 +1586,8 @@ setInterval(()=>{
   const Z=map.getZoom(),s=map.getSize();
   for(const t of treasures){
     if(t.c)continue;
-    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*2))continue;
-    if(getDist(t.lat,t.lng,userPos.lat,userPos.lng)>COLLECT_RADIUS*2.5)continue;
+    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4))continue;
+    if(getDist(t.lat,t.lng,userPos.lat,userPos.lng)>COLLECT_RADIUS*5)continue;
     const p=map.latLngToContainerPoint([t.lat,t.lng]);
     if(p.x<0||p.x>s.x||p.y<0||p.y>s.y)continue;
     const pulse=1+.15*Math.sin(Date.now()/300);
@@ -1678,8 +1680,8 @@ function updateRadarMini(){
   cx.beginPath();cx.moveTo(32,32);cx.arc(32,32,30,sweep-0.5,sweep);cx.closePath();
   cx.fillStyle='rgba(0,255,136,0.08)';cx.fill();
 
-  // Find nearby treasures
-  const near=treasures.filter(t=>!t.c&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<200);
+  // Find nearby treasures (up to 500m)
+  const near=treasures.filter(t=>!t.c&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<500);
   for(const t of near){
     const d=getDist(userPos.lat,userPos.lng,t.lat,t.lng);
     const angle=Math.atan2(t.lng-userPos.lng,t.lat-userPos.lat)-heading*Math.PI/180;
