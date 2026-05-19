@@ -244,11 +244,209 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 .set-item .sbar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;overflow:hidden}
 .set-item .sbar .sf{height:100%;border-radius:2px;transition:width .5s}
 .set-item .sst{font-size:9px;color:var(--gold);white-space:nowrap}
+
+/* ===== 3D & VISUAL UPGRADES ===== */
+
+/* 3D Treasure Markers on map overlay */
+.t3d-marker{
+  position:absolute;pointer-events:none;
+  transform-style:preserve-3d;
+  animation:float3d 3s ease-in-out infinite;
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.6));
+  z-index:5;
+}
+@keyframes float3d{
+  0%{transform:translateY(0px) rotateX(10deg) rotateY(0deg) scale(1)}
+  33%{transform:translateY(-6px) rotateX(15deg) rotateY(8deg) scale(1.08)}
+  66%{transform:translateY(-3px) rotateX(8deg) rotateY(-6deg) scale(1.04)}
+  100%{transform:translateY(0px) rotateX(10deg) rotateY(0deg) scale(1)}
+}
+.t3d-marker .face{
+  font-size:22px;
+  text-shadow:
+    2px 2px 0 rgba(0,0,0,.5),
+    4px 4px 8px rgba(0,0,0,.4),
+    0 0 20px var(--glow,#fff);
+  display:block;
+  line-height:1;
+}
+.t3d-marker .shadow3d{
+  width:20px;height:6px;
+  background:radial-gradient(ellipse,rgba(0,0,0,.5) 0%,transparent 70%);
+  border-radius:50%;
+  margin:2px auto 0;
+  transform:scaleX(1.2);
+  animation:shadow3dAnim 3s ease-in-out infinite;
+}
+@keyframes shadow3dAnim{
+  0%{transform:scaleX(1.2) scaleY(1);opacity:.5}
+  33%{transform:scaleX(.8) scaleY(.6);opacity:.25}
+  100%{transform:scaleX(1.2) scaleY(1);opacity:.5}
+}
+.t3d-marker.near-glow .face{
+  animation:nearPulse3d 1.2s ease-in-out infinite;
+}
+@keyframes nearPulse3d{
+  0%{transform:scale(1) rotateY(0deg);filter:brightness(1)}
+  50%{transform:scale(1.2) rotateY(180deg);filter:brightness(1.5)}
+  100%{transform:scale(1) rotateY(360deg);filter:brightness(1)}
+}
+
+/* Particle burst canvas */
+#particleCanvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:200;
+}
+
+/* Weather canvas */
+#weatherCanvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:3;opacity:.7;
+}
+
+/* Heatmap canvas */
+#heatCanvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:1;opacity:0;
+  transition:opacity .5s;
+}
+#heatCanvas.show{opacity:.55}
+
+/* Heatmap toggle button */
+#heatBtn{
+  position:absolute;bottom:92px;left:6px;z-index:10;
+  width:34px;height:34px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(5,5,20,.85);
+  color:#aaa;font-size:14px;cursor:pointer;
+  transition:.15s;display:flex;align-items:center;justify-content:center;
+}
+#heatBtn.active{border-color:#f44;color:#f44;background:rgba(255,68,68,.1);}
+
+/* 3D Collect flash */
+@keyframes collectFlash3d{
+  0%{transform:translate(-50%,-50%) scale(.3) rotateY(-90deg);opacity:0}
+  40%{transform:translate(-50%,-50%) scale(1.15) rotateY(10deg);opacity:1}
+  70%{transform:translate(-50%,-50%) scale(.95) rotateY(-5deg);opacity:1}
+  100%{transform:translate(-50%,-50%) scale(1) rotateY(0deg);opacity:0}
+}
+.collect-popup{
+  position:fixed;z-index:210;pointer-events:none;
+  font-weight:800;font-size:22px;color:var(--gold);
+  text-shadow:0 0 20px rgba(255,215,0,.8),2px 2px 0 rgba(0,0,0,.5);
+  animation:collectFlash3d .8s cubic-bezier(.34,1.56,.64,1) forwards;
+  left:50%;top:38%;
+  white-space:nowrap;
+}
+
+/* Floating score text */
+@keyframes floatScore{
+  0%{transform:translate(-50%,0) scale(1);opacity:1}
+  100%{transform:translate(-50%,-60px) scale(1.3);opacity:0}
+}
+.score-float{
+  position:fixed;z-index:210;pointer-events:none;
+  font-weight:700;font-size:16px;color:var(--gold);
+  text-shadow:0 0 10px rgba(255,215,0,.6);
+  animation:floatScore 1.2s ease-out forwards;
+  left:50%;
+}
+
+/* 3D Zone label pulse */
+@keyframes zoneLabelPulse{
+  0%{opacity:.8;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.05)}
+  100%{opacity:.8;transform:scale(1)}
+}
+
+/* Weather indicator */
+#weatherWidget{
+  position:absolute;top:46px;right:40px;z-index:10;
+  font-size:16px;cursor:pointer;
+  transition:.2s;filter:drop-shadow(0 0 6px rgba(255,255,255,.3));
+  animation:weatherBob 4s ease-in-out infinite;
+}
+@keyframes weatherBob{
+  0%{transform:translateY(0)}50%{transform:translateY(-3px)}100%{transform:translateY(0)}
+}
+/* ===== AR COMPASS OVERLAY ===== */
+#arCompass{
+  position:absolute;
+  bottom:160px;left:50%;transform:translateX(-50%);
+  z-index:400;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  pointer-events:none;
+}
+#arOverlay.show #arCompass{display:flex}
+
+#arCompassRing{
+  width:120px;height:120px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.2);
+  background:rgba(5,5,20,.5);
+  backdrop-filter:blur(4px);
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+#arCompassNeedle{
+  position:absolute;top:50%;left:50%;
+  width:4px;height:44px;
+  margin-left:-2px;margin-top:-44px;
+  border-radius:2px 2px 0 0;
+  background:linear-gradient(180deg,#f44 50%,transparent 50%);
+  transform-origin:bottom center;
+  transition:transform .2s;
+}
+#arCompassNeedleS{
+  position:absolute;top:50%;left:50%;
+  width:4px;height:44px;
+  margin-left:-2px;margin-top:0px;
+  border-radius:0 0 2px 2px;
+  background:linear-gradient(180deg,transparent 50%,#fff 50%);
+  transform-origin:top center;
+  transition:transform .2s;
+}
+#arNDir{position:absolute;top:4px;font-size:10px;font-weight:700;color:#f44}
+#arSDir{position:absolute;bottom:4px;font-size:10px;font-weight:700;color:#aaa}
+#arEDir{position:absolute;right:4px;font-size:10px;font-weight:700;color:#aaa}
+#arWDir{position:absolute;left:4px;font-size:10px;font-weight:700;color:#aaa}
+#arTargetArrow{
+  font-size:28px;
+  margin-bottom:6px;
+  transition:transform .3s;
+  filter:drop-shadow(0 0 8px var(--gold));
+}
+#arTargetInfo{
+  background:rgba(5,5,20,.8);
+  border:1px solid rgba(255,215,0,.3);
+  border-radius:8px;padding:4px 12px;
+  font-size:11px;color:var(--gold);
+  text-align:center;
+  margin-top:6px;
+}
+
+/* ===== 3D ZONE BOUNDARY CANVAS ===== */
+#zoneBoundCanvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:2;
+}
 </style>
 </head>
 <body>
 <div id="map"></div>
 <canvas id="fogCanvas"></canvas>
+<canvas id="zoneBoundCanvas"></canvas>
+<canvas id="heatCanvas"></canvas>
+<canvas id="weatherCanvas"></canvas>
+<canvas id="particleCanvas"></canvas>
+
+<!-- Heat toggle -->
+<button id="heatBtn" title="Heatmap">🌡️</button>
+
+<!-- Weather widget -->
+<div id="weatherWidget" title="Weather bonus"></div>
 
 <!-- HUD -->
 <div id="hud">
@@ -359,7 +557,19 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 
 <div id="svOverlay"><div class="svb"><h3>🗺️ Street View</h3><button id="svClose">✕</button></div><iframe id="svFrame" allowfullscreen></iframe></div>
 
-<div id="arOverlay"><video id="arVideo" autoplay playsinline></video><div class="arc" id="arIcon">💎</div><div class="arb"><span id="arDist" style="color:#fff;font-size:12px">📍 0m</span><button id="arClose">✕ Close AR</button></div></div>
+<div id="arOverlay"><video id="arVideo" autoplay playsinline></video><div class="arc" id="arIcon">💎</div>
+<!-- AR Compass -->
+<div id="arCompass">
+  <div id="arTargetArrow">🧭</div>
+  <div id="arCompassRing">
+    <span id="arNDir">N</span><span id="arSDir">S</span>
+    <span id="arEDir">E</span><span id="arWDir">W</span>
+    <div id="arCompassNeedle"></div>
+    <div id="arCompassNeedleS"></div>
+  </div>
+  <div id="arTargetInfo">No target selected</div>
+</div>
+<div class="arb"><span id="arDist" style="color:#fff;font-size:12px">📍 0m</span><button id="arClose">✕ Close AR</button></div></div>
 
 <div id="taOverlay"><div class="tat" id="taTime">5:00</div><div class="tas" id="taScore">Score: 0</div><button class="tabtn" id="taStart">⚡ Start Rush!</button></div>
 
@@ -854,6 +1064,14 @@ function init(){
   if(navigator.geolocation)startGps();
   else updateGpsStatus('none','GPS not available');
 
+  // 3D & Visual Systems
+  init3DMarkers();
+  hook3DToMap();
+  initParticles();
+  initHeat();
+  initWeather();
+  initZoneBoundaries();
+
   updateHUD();
   renderList();
   render();
@@ -863,6 +1081,9 @@ function resizeCanvas(){
   const s=map.getSize();
   fogCanvas.width=s.x;fogCanvas.height=s.y;
   fogCanvas.style.width=s.x+'px';fogCanvas.style.height=s.y+'px';
+  const hc=document.getElementById('heatCanvas');
+  if(hc){hc.width=s.x;hc.height=s.y;hc.style.width=s.x+'px';hc.style.height=s.y+'px'}
+  resizeZoneBound();
   render();
 }
 
@@ -935,7 +1156,7 @@ function onPos(pos){
   for(const z of ZONES){const d=getDist(lat,lng,z.lat,z.lng);if(d<nd){nd=d;nearest=z.id}}
   const cz=ZONES.find(z=>z.id===nearest);
   if(cz&&nd<cz.R*111000*2){
-    if(currentZone!==nearest){currentZone=nearest;renderList();updateHUD();showToast(`📍 ${cz.nameSi} zone!`);checkAchievements()}
+    if(currentZone!==nearest){currentZone=nearest;renderList();updateHUD();showToast(`📍 ${cz.nameSi} zone!`);checkAchievements();drawZoneBoundaries()}
   }
   currentZone=nearest;
 
@@ -1038,32 +1259,50 @@ function render(){
     ctx.shadowColor=z.color;ctx.shadowBlur=10;ctx.fillStyle=z.color;ctx.fillText(`${z.icon} ${z.name}`,p.x,p.y-20);ctx.shadowBlur=0;
   }
 
+  // Update 3D markers overlay
+  update3DMarkers();
+
   // Radar power-up: show all nearby through fog
   const radarActive=powerupActive==='radar';
 
-  // Draw treasures
+  // Draw treasures — show icons for ALL on-screen treasures within 1500m
+  const VISIBLE_RADIUS=1500; // meters — show icon if within this range
   for(const t of treasures){
     if(t.c)continue;
     const ex=isExplored(t.lat,t.lng);
-    const near=userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4;
-    const radarVis=radarActive&&userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<400;
+    const dist=userPos?getDist(userPos.lat,userPos.lng,t.lat,t.lng):Infinity;
+    const near=userPos&&dist<COLLECT_RADIUS*4;       // <200m — bright/pulse
+    const mid=userPos&&dist<VISIBLE_RADIUS;          // <1500m — show icon
+    const radarVis=radarActive&&userPos&&dist<600;
 
-    if(!ex&&!near&&!radarVis)continue;
+    // Only draw if explored, near, within 1500m, or radar
+    if(!ex&&!near&&!mid&&!radarVis)continue;
 
     const p=map.latLngToContainerPoint([t.lat,t.lng]);
     if(p.x<-15||p.x>W+15||p.y<-15||p.y>H+15)continue;
 
-    if(!ex&&(near||radarVis)){
-      ctx.globalAlpha=0.7;ctx.font='16px serif';
-      ctx.shadowColor=t.ti.color;ctx.shadowBlur=20;
+    // Within fog but close/mid-range: show dimmed icon with distance hint
+    if(!ex&&(near||mid||radarVis)){
+      const alpha=radarVis?0.9:near?0.85:Math.max(0.25,1-(dist/VISIBLE_RADIUS)*0.75);
+      ctx.globalAlpha=alpha;
+      const sz=near?18:mid?14:12;
+      ctx.font=`${sz}px serif`;
+      ctx.shadowColor=t.ti.color;ctx.shadowBlur=near?20:8;
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText(t.ti.icon,p.x,p.y);
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.font='bold 7px sans-serif';ctx.fillStyle=t.ti.color;
-      ctx.fillText(radarVis?'📡 RADAR':'📍 NEARBY',p.x,p.y+12);
+      // Label under icon
+      if(near||radarVis){
+        ctx.font='bold 7px sans-serif';ctx.fillStyle=t.ti.color;
+        ctx.fillText(radarVis?'📡':near?`${Math.round(dist)}m`:'',p.x,p.y+11);
+      } else if(mid&&Z>=14){
+        ctx.font='6px sans-serif';ctx.fillStyle='rgba(255,255,255,.4)';
+        ctx.fillText(`${Math.round(dist/100)/10}km`,p.x,p.y+11);
+      }
       continue;
     }
 
+    // Fully explored area
     if(near){const pulse=1+.15*Math.sin(Date.now()/300);ctx.font=`${Math.round(20*pulse)}px serif`;ctx.shadowColor=t.ti.color;ctx.shadowBlur=20}
     else{ctx.font='16px serif';ctx.shadowBlur=4;ctx.shadowColor=t.ti.color}
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.ti.icon,p.x,p.y);ctx.shadowBlur=0;
@@ -1133,6 +1372,7 @@ function collectTreasure(t){
     const rw=t.ti.reward*t.d;
     TA.score+=rw;score+=rw;
     playCollect();haptic(20);
+    show3DCollectEffect(t);
     showToast(`⚡ ${rw} pts!`);
     save();updateHUD();renderList();render();
     return;
@@ -1165,6 +1405,7 @@ function collectTreasure(t){
 
   playCollect();
   if(comboCount>=3)playCombo();
+  show3DCollectEffect(t);
 
   save();updateHUD();renderList();render();
   showToast(`📦 ${t.n} +${rw} 🏆${comboCount>=3?` 🔥x${comboCount}`:''}${w.mult!==1?` ${w.icon}`:''}`);
@@ -1864,6 +2105,483 @@ function checkNearbyVibrate(lat,lng){
 }
 
 // onPos patching done inline inside onPos function directly (see onPos above)
+
+// =============================================
+// 3D ZONE BOUNDARIES
+// =============================================
+let zbCanvas=null,zbCtx=null,zbVisible=true;
+
+function initZoneBoundaries(){
+  zbCanvas=document.getElementById('zoneBoundCanvas');
+  zbCtx=zbCanvas.getContext('2d');
+  map.on('moveend zoomend',drawZoneBoundaries);
+  drawZoneBoundaries();
+  // Update every 3s for pulse animation
+  setInterval(drawZoneBoundaries,3000);
+}
+
+function resizeZoneBound(){
+  if(!zbCanvas||!map)return;
+  const s=map.getSize();
+  zbCanvas.width=s.x;zbCanvas.height=s.y;
+  zbCanvas.style.width=s.x+'px';zbCanvas.style.height=s.y+'px';
+}
+
+function drawZoneBoundaries(){
+  if(!zbCtx||!map)return;
+  resizeZoneBound();
+  const s=map.getSize();
+  zbCtx.clearRect(0,0,s.x,s.y);
+  const Z=map.getZoom();
+  if(Z<8)return; // don't draw at far zoom
+
+  const t=Date.now()/1000;
+  for(const z of ZONES){
+    const cp=map.latLngToContainerPoint([z.lat,z.lng]);
+    if(cp.x<-200||cp.x>s.x+200||cp.y<-200||cp.y>s.y+200)continue;
+
+    // Convert radius in degrees → pixels
+    const mPerPx=156543.03392*Math.cos(z.lat*Math.PI/180)/Math.pow(2,Z);
+    const rPx=(z.R*111000)/mPerPx;
+    if(rPx<10||rPx>2000)continue;
+
+    const isActive=currentZone===z.id;
+    const pulse=isActive?1+.08*Math.sin(t*2):1;
+    const r=rPx*pulse;
+
+    // 3D-look: outer glow ring
+    const glow=zbCtx.createRadialGradient(cp.x,cp.y,r*.85,cp.x,cp.y,r*1.1);
+    glow.addColorStop(0,'rgba(0,0,0,0)');
+    const glowAlpha=isActive?.35:.15;
+    glow.addColorStop(.6,`${z.color}${Math.round(glowAlpha*255).toString(16).padStart(2,'0')}`);
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    zbCtx.beginPath();zbCtx.arc(cp.x,cp.y,r*1.1,0,Math.PI*2);
+    zbCtx.fillStyle=glow;zbCtx.fill();
+
+    // Dashed boundary ring
+    zbCtx.save();
+    zbCtx.beginPath();zbCtx.arc(cp.x,cp.y,r,0,Math.PI*2);
+    zbCtx.setLineDash([8,6]);
+    zbCtx.lineDashOffset=-t*12; // animated dash
+    zbCtx.strokeStyle=z.color+(isActive?'cc':'66');
+    zbCtx.lineWidth=isActive?2.5:1.5;
+    zbCtx.shadowColor=z.color;zbCtx.shadowBlur=isActive?16:8;
+    zbCtx.stroke();
+    zbCtx.restore();
+
+    // Inner fill — very subtle
+    zbCtx.beginPath();zbCtx.arc(cp.x,cp.y,r*.9,0,Math.PI*2);
+    zbCtx.fillStyle=z.color+'0a';zbCtx.fill();
+
+    // 3D highlight arc (top-left sheen)
+    zbCtx.save();
+    zbCtx.beginPath();zbCtx.arc(cp.x,cp.y,r,Math.PI*1.1,Math.PI*1.6);
+    zbCtx.strokeStyle=`rgba(255,255,255,${isActive?.25:.1})`;
+    zbCtx.lineWidth=isActive?4:2;zbCtx.setLineDash([]);
+    zbCtx.shadowBlur=0;zbCtx.stroke();
+    zbCtx.restore();
+
+    // Zone icon + name in center
+    if(Z>=10){
+      zbCtx.save();
+      zbCtx.font=`bold ${isActive?16:13}px sans-serif`;
+      zbCtx.textAlign='center';zbCtx.textBaseline='middle';
+      zbCtx.shadowColor=z.color;zbCtx.shadowBlur=12;
+      zbCtx.fillStyle=isActive?z.color:'rgba(255,255,255,.5)';
+      zbCtx.fillText(`${z.icon} ${z.nameSi}`,cp.x,cp.y);
+      zbCtx.shadowBlur=0;
+      if(Z>=12&&isActive){
+        const tot=treasures.filter(t2=>t2.z===z.id).length;
+        const fnd=treasures.filter(t2=>t2.z===z.id&&t2.c).length;
+        zbCtx.font='10px sans-serif';
+        zbCtx.fillStyle='rgba(255,255,255,.6)';
+        zbCtx.fillText(`${fnd}/${tot} 📦`,cp.x,cp.y+18);
+      }
+      zbCtx.restore();
+    }
+
+    // Corner dots at N/S/E/W of boundary
+    if(Z>=11){
+      const pts=[
+        [cp.x,cp.y-r],[cp.x,cp.y+r],
+        [cp.x+r,cp.y],[cp.x-r,cp.y]
+      ];
+      for(const [dx,dy] of pts){
+        if(dx<-10||dx>s.x+10||dy<-10||dy>s.y+10)continue;
+        zbCtx.beginPath();zbCtx.arc(dx,dy,isActive?4:2.5,0,Math.PI*2);
+        zbCtx.fillStyle=z.color;zbCtx.shadowColor=z.color;zbCtx.shadowBlur=8;
+        zbCtx.fill();zbCtx.shadowBlur=0;
+      }
+    }
+  }
+}
+
+// =============================================
+// AR COMPASS OVERLAY
+// =============================================
+let arCompassInterval=null;
+
+function startARCompass(){
+  if(arCompassInterval)clearInterval(arCompassInterval);
+  arCompassInterval=setInterval(updateARCompass,200);
+  updateARCompass();
+}
+
+function stopARCompass(){
+  if(arCompassInterval)clearInterval(arCompassInterval);
+  arCompassInterval=null;
+}
+
+function updateARCompass(){
+  const compassEl=document.getElementById('arCompass');
+  if(!compassEl||!document.getElementById('arOverlay').classList.contains('show'))return;
+
+  // Rotate compass needle with device heading
+  const h=heading>=0?heading:0;
+  document.getElementById('arCompassNeedle').style.transform=`rotate(${-h}deg)`;
+  document.getElementById('arCompassNeedleS').style.transform=`rotate(${-h}deg)`;
+
+  const target=navTarget||modalTreasure;
+  const arInfo=document.getElementById('arTargetInfo');
+  const arArrow=document.getElementById('arTargetArrow');
+
+  if(!target||!userPos){
+    arInfo.textContent='No target — navigate to a treasure';
+    arArrow.textContent='🧭';
+    arArrow.style.transform='rotate(0deg)';
+    return;
+  }
+
+  const dist=getDist(userPos.lat,userPos.lng,target.lat,target.lng);
+
+  // Bearing to target
+  const dLng=(target.lng-userPos.lng)*Math.PI/180;
+  const y=Math.sin(dLng)*Math.cos(target.lat*Math.PI/180);
+  const x=Math.cos(userPos.lat*Math.PI/180)*Math.sin(target.lat*Math.PI/180)
+         -Math.sin(userPos.lat*Math.PI/180)*Math.cos(target.lat*Math.PI/180)*Math.cos(dLng);
+  const bearing=((Math.atan2(y,x)*180/Math.PI)+360)%360;
+
+  // Arrow points toward target relative to heading
+  const relAngle=bearing-(heading>=0?heading:0);
+  arArrow.style.transform=`rotate(${relAngle}deg)`;
+  arArrow.textContent=target.ti.icon;
+
+  const distStr=dist<1000?`${Math.round(dist)}m`:`${(dist/1000).toFixed(2)}km`;
+  const dirs=['N','NE','E','SE','S','SW','W','NW'];
+  const dir=dirs[Math.round(bearing/45)%8];
+  arInfo.innerHTML=`${target.n}<br><span style="color:#aaa;font-size:9px">${dir} · ${distStr}</span>`;
+}
+
+// Patch openAR and closeAR to start/stop compass
+const _origOpenAR=openAR;
+async function openAR(){
+  await _origOpenAR();
+  startARCompass();
+}
+const _origCloseAR=closeAR;
+function closeAR(){
+  _origCloseAR();
+  stopARCompass();
+}
+
+// =============================================
+// 3D TREASURE MARKERS
+// =============================================
+let markers3d=[];
+let markers3dContainer=null;
+
+function init3DMarkers(){
+  markers3dContainer=document.createElement('div');
+  markers3dContainer.id='markers3dLayer';
+  markers3dContainer.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;pointer-events:none;perspective:800px;transform-style:preserve-3d';
+  document.getElementById('map').appendChild(markers3dContainer);
+}
+
+function update3DMarkers(){
+  if(!markers3dContainer||!map)return;
+  markers3dContainer.innerHTML='';
+  if(!map||map.getZoom()<14)return; // only show at close zoom
+
+  const s=map.getSize();
+  let count=0;
+  for(const t of treasures){
+    if(t.c)continue;
+    const dist=userPos?getDist(userPos.lat,userPos.lng,t.lat,t.lng):Infinity;
+    const visible=dist<1500; // show within 1.5km
+    if(!visible)continue;
+    if(count++>80)break;
+
+    const p=map.latLngToContainerPoint([t.lat,t.lng]);
+    if(p.x<-40||p.x>s.x+40||p.y<-40||p.y>s.y+40)continue;
+
+    const near=dist<COLLECT_RADIUS*4;
+    const mid=dist>=COLLECT_RADIUS*4&&dist<500;
+    const far=dist>=500;
+
+    const div=document.createElement('div');
+    div.className='t3d-marker'+(near?' near-glow':'');
+    const sizeScale=near?1.3:mid?1.0:0.7;
+    const opacity=near?1:mid?0.75:Math.max(0.3,1-(dist/1500)*0.7);
+    div.style.cssText=`left:${p.x}px;top:${p.y}px;position:absolute;transform:translate(-50%,-60%);--glow:${t.ti.color};animation-delay:${(t.id%10)*.3}s;opacity:${opacity}`;
+    div.innerHTML=`<span class="face" style="font-size:${Math.round(22*sizeScale)}px">${t.ti.icon}</span><div class="shadow3d"></div>`;
+
+    if(near&&dist<COLLECT_RADIUS*2){
+      const ring=document.createElement('div');
+      ring.style.cssText=`position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border:2px solid ${t.ti.color};border-radius:50%;animation:crPulse 1s infinite;opacity:.5`;
+      div.appendChild(ring);
+    }
+    markers3dContainer.appendChild(div);
+  }
+}
+
+// Update 3D markers on map move
+function hook3DToMap(){
+  map.on('moveend zoomend',update3DMarkers);
+  setInterval(update3DMarkers,2000);
+}
+
+// =============================================
+// PARTICLE BURST SYSTEM
+// =============================================
+const particleCanvas=()=>document.getElementById('particleCanvas');
+let pCtx=null;
+let particles=[];
+
+function initParticles(){
+  const c=particleCanvas();
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  pCtx=c.getContext('2d');
+  window.addEventListener('resize',()=>{c.width=window.innerWidth;c.height=window.innerHeight});
+  requestAnimationFrame(animParticles);
+}
+
+function spawnBurst(x,y,color,icon,count=24){
+  const emojis=['⭐','✨','💫','🌟'];
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=2+Math.random()*6;
+    const useEmoji=Math.random()<.3;
+    particles.push({
+      x,y,
+      vx:Math.cos(angle)*speed,
+      vy:Math.sin(angle)*speed - 2,
+      life:1,decay:.018+Math.random()*.012,
+      size:useEmoji?16:3+Math.random()*5,
+      color,
+      isEmoji:useEmoji,
+      emoji:emojis[Math.random()*emojis.length|0],
+      spin:Math.random()*10-5,
+      rotation:Math.random()*Math.PI*2
+    });
+  }
+  // Add center icon
+  particles.push({x,y,vx:0,vy:-3,life:1,decay:.025,size:28,color,isEmoji:true,emoji:icon,spin:0,rotation:0,center:true});
+}
+
+function animParticles(){
+  if(!pCtx)return requestAnimationFrame(animParticles);
+  pCtx.clearRect(0,0,pCtx.canvas.width,pCtx.canvas.height);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;
+    p.vy+=0.12; // gravity
+    p.vx*=0.97;
+    p.life-=p.decay;
+    p.rotation+=p.spin*0.05;
+    if(p.life<=0){particles.splice(i,1);continue}
+    pCtx.globalAlpha=Math.min(1,p.life*2);
+    if(p.isEmoji){
+      pCtx.save();
+      pCtx.translate(p.x,p.y);
+      pCtx.rotate(p.rotation);
+      pCtx.font=`${p.size}px serif`;
+      pCtx.textAlign='center';pCtx.textBaseline='middle';
+      pCtx.fillText(p.emoji,0,0);
+      pCtx.restore();
+    }else{
+      pCtx.save();
+      pCtx.translate(p.x,p.y);pCtx.rotate(p.rotation);
+      pCtx.fillStyle=p.color;
+      pCtx.shadowColor=p.color;pCtx.shadowBlur=p.size*2;
+      pCtx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+      pCtx.shadowBlur=0;
+      pCtx.restore();
+    }
+  }
+  pCtx.globalAlpha=1;
+  requestAnimationFrame(animParticles);
+}
+
+function show3DCollectEffect(t){
+  // Particle burst at screen center
+  const cx=window.innerWidth/2,cy=window.innerHeight*0.42;
+  spawnBurst(cx,cy,t.ti.color,t.ti.icon,30);
+
+  // 3D popup text
+  const pop=document.createElement('div');
+  pop.className='collect-popup';
+  pop.textContent=`${t.ti.icon} +${t.ti.reward*t.d}🏆`;
+  document.body.appendChild(pop);
+  setTimeout(()=>pop.remove(),900);
+
+  // Floating score
+  const sf=document.createElement('div');
+  sf.className='score-float';
+  sf.style.top=(cy+20)+'px';
+  sf.textContent=`+${t.ti.reward*t.d}`;
+  document.body.appendChild(sf);
+  setTimeout(()=>sf.remove(),1300);
+}
+
+// =============================================
+// HEATMAP
+// =============================================
+let heatVisible=false;
+let heatCanvas2=null,heatCtx=null;
+
+function initHeat(){
+  heatCanvas2=document.getElementById('heatCanvas');
+  heatCtx=heatCanvas2.getContext('2d');
+  document.getElementById('heatBtn').addEventListener('click',toggleHeat);
+  map.on('moveend zoomend',()=>{if(heatVisible)drawHeat()});
+}
+
+function toggleHeat(){
+  heatVisible=!heatVisible;
+  document.getElementById('heatBtn').classList.toggle('active',heatVisible);
+  document.getElementById('heatCanvas').classList.toggle('show',heatVisible);
+  if(heatVisible)drawHeat();
+  else if(heatCtx)heatCtx.clearRect(0,0,heatCanvas2.width,heatCanvas2.height);
+  showToast(heatVisible?'🌡️ Heatmap ON':'🌡️ Heatmap OFF');
+}
+
+function drawHeat(){
+  if(!heatCtx||!map)return;
+  const s=map.getSize();
+  heatCanvas2.width=s.x;heatCanvas2.height=s.y;
+  heatCtx.clearRect(0,0,s.x,s.y);
+
+  // Build density grid
+  const cellSz=40;const cols=Math.ceil(s.x/cellSz),rows=Math.ceil(s.y/cellSz);
+  const grid=new Array(rows*cols).fill(0);
+  for(const t of treasures){
+    if(t.c)continue;
+    const p=map.latLngToContainerPoint([t.lat,t.lng]);
+    if(p.x<0||p.x>s.x||p.y<0||p.y>s.y)continue;
+    const ci=Math.floor(p.x/cellSz),ri=Math.floor(p.y/cellSz);
+    if(ci>=0&&ci<cols&&ri>=0&&ri<rows)grid[ri*cols+ci]++;
+  }
+  const maxDens=Math.max(1,...grid);
+
+  // Draw heat blobs per cell
+  for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){
+    const v=grid[r*cols+c];
+    if(!v)continue;
+    const norm=v/maxDens;
+    const cx2=c*cellSz+cellSz/2,cy2=r*cellSz+cellSz/2;
+    const radius=cellSz*(0.8+norm*0.6);
+    const grad=heatCtx.createRadialGradient(cx2,cy2,0,cx2,cy2,radius);
+    const h=norm>0.7?0:norm>0.4?30:norm>0.2?60:120; // red→orange→yellow→green
+    grad.addColorStop(0,`hsla(${h},100%,55%,${0.5+norm*0.4})`);
+    grad.addColorStop(1,`hsla(${h},100%,55%,0)`);
+    heatCtx.fillStyle=grad;
+    heatCtx.beginPath();heatCtx.arc(cx2,cy2,radius,0,Math.PI*2);heatCtx.fill();
+  }}
+}
+
+// =============================================
+// WEATHER PARTICLES
+// =============================================
+let wCtx=null,weatherParticles=[],weatherMode='none';
+const WEATHER_TYPES={
+  morning:{particles:'sun',color:'#ffd700',icon:'🌅'},
+  day:{particles:'sun',color:'#ffa500',icon:'☀️'},
+  evening:{particles:'dust',color:'#ff6b35',icon:'🌆'},
+  night:{particles:'stars',color:'#aaf',icon:'🌙'}
+};
+
+function initWeather(){
+  const c=document.getElementById('weatherCanvas');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  wCtx=c.getContext('2d');
+  window.addEventListener('resize',()=>{c.width=window.innerWidth;c.height=window.innerHeight;spawnWeatherParticles()});
+  spawnWeatherParticles();
+  animWeather();
+  updateWeatherWidget();
+  setInterval(()=>{spawnWeatherParticles();updateWeatherWidget()},60000);
+}
+
+function updateWeatherWidget(){
+  const w=getWeather();
+  const el=document.getElementById('weatherWidget');
+  if(el)el.textContent=w.icon+' '+w.mult+'x';
+}
+
+function spawnWeatherParticles(){
+  const w=getWeather();
+  weatherMode=w.id;
+  weatherParticles=[];
+  const W=window.innerWidth,H=window.innerHeight;
+  if(w.id==='night'){
+    for(let i=0;i<80;i++){
+      weatherParticles.push({x:Math.random()*W,y:Math.random()*H,size:.5+Math.random()*2,opacity:Math.random(),pulse:Math.random()*Math.PI*2,speed:.003+Math.random()*.01,twinkle:Math.random()>.6});
+    }
+  }else if(w.id==='morning'||w.id==='day'){
+    for(let i=0;i<20;i++){
+      const angle=Math.random()*Math.PI*2;
+      weatherParticles.push({x:Math.random()*W,y:Math.random()*H,vx:Math.cos(angle)*.3,vy:Math.sin(angle)*.3,size:1+Math.random()*3,opacity:.1+Math.random()*.25,drift:Math.random()*Math.PI*2,pulse:Math.random()*Math.PI*2});
+    }
+  }else if(w.id==='evening'){
+    for(let i=0;i<15;i++){
+      weatherParticles.push({x:Math.random()*W,y:Math.random()*H*.7,vx:(Math.random()-.5)*.5,vy:-.2-Math.random()*.4,size:2+Math.random()*4,opacity:.1+Math.random()*.2,life:1,decay:.003});
+    }
+  }
+}
+
+function animWeather(){
+  if(!wCtx){requestAnimationFrame(animWeather);return}
+  const W=wCtx.canvas.width,H=wCtx.canvas.height;
+  wCtx.clearRect(0,0,W,H);
+  const w=getWeather();
+
+  for(let i=weatherParticles.length-1;i>=0;i--){
+    const p=weatherParticles[i];
+    if(w.id==='night'){
+      p.pulse+=p.speed;
+      const op=p.twinkle?Math.abs(Math.sin(p.pulse))*.9:p.opacity*.5;
+      wCtx.beginPath();wCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      wCtx.fillStyle=`rgba(200,210,255,${op})`;
+      if(p.twinkle){wCtx.shadowColor='#aaf';wCtx.shadowBlur=p.size*3}
+      wCtx.fill();wCtx.shadowBlur=0;
+    }else if(w.id==='morning'||w.id==='day'){
+      p.drift+=.008;p.x+=p.vx;p.y+=Math.sin(p.drift)*.3;
+      if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;
+      if(p.y<-20)p.y=H+20;if(p.y>H+20)p.y=-20;
+      wCtx.beginPath();wCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      const col=w.id==='day'?`rgba(255,220,100,${p.opacity})`:`rgba(255,160,80,${p.opacity})`;
+      wCtx.fillStyle=col;wCtx.shadowColor=col;wCtx.shadowBlur=p.size*4;wCtx.fill();wCtx.shadowBlur=0;
+    }else if(w.id==='evening'){
+      p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;
+      if(p.life<=0){
+        weatherParticles.splice(i,1);
+        weatherParticles.push({x:Math.random()*W,y:H*.7+Math.random()*H*.3,vx:(Math.random()-.5)*.5,vy:-.2-Math.random()*.4,size:2+Math.random()*4,opacity:.1+Math.random()*.2,life:1,decay:.003});
+        continue;
+      }
+      const op=p.opacity*p.life;
+      wCtx.beginPath();wCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      wCtx.fillStyle=`rgba(255,107,53,${op})`;wCtx.shadowColor='#ff6b35';wCtx.shadowBlur=p.size*3;wCtx.fill();wCtx.shadowBlur=0;
+    }
+  }
+  requestAnimationFrame(animWeather);
+}
+
+// =============================================
+// PATCH: showToast to skip 3D effect override
+// =============================================
+// Hook collect to trigger 3D effect
+const _origCollectTreasure3d=collectTreasure;
+// We patch by wrapping via a flag since collectTreasure is a function declaration
+// Instead just call show3DCollectEffect from inside collectTreasure directly (see patch below)
 
 // =============================================
 // START
