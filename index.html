@@ -368,12 +368,10 @@ body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:#fff;overflo
 <div id="toast"></div>
 <div id="achieve"><span class="ai" id="aIcon">🏆</span><span id="aText">Achievement!</span></div>
 
-<div id="enc" class="ecyc" style="display:none">
-  <!-- Encyclopedia -->
-  <div id="encyc">
-    <div class="eh"><span>📚 Treasure Encyclopedia</span><button id="encycClose">✕ Close</button></div>
-    <div class="eg" id="encycGrid"></div>
-  </div>
+<!-- Encyclopedia -->
+<div id="encyc">
+  <div class="eh"><span>📚 Treasure Encyclopedia</span><button id="encycClose">✕ Close</button></div>
+  <div class="eg" id="encycGrid"></div>
 </div>
 
 <div id="badges">
@@ -700,7 +698,7 @@ const SI={
 // =============================================
 function save(){
   try{
-    const data={s:score,l:level,x:xp,ex:exploredLocs,tr:treasures.filter(t=>t.c).map(t=>t.id),ac:[...achievements],bc:bestCombo,td:totalTravelDist,ds:dailyStreak,pu:{m:PU.magnet.left,r:PU.radar.left,x:PU.xray.left}};
+    const data={s:score,l:level,x:xp,ex:exploredLocs,tr:treasures.filter(t=>t.c).map(t=>t.id),ac:[...achievements],bc:bestCombo,td:totalTravelDist,ds:dailyStreak,wpp:walkPathPoints,pu:{m:PU.magnet.left,r:PU.radar.left,x:PU.xray.left}};
     localStorage.setItem('nd_ult',JSON.stringify(data));
     localStorage.setItem('nd_gb',JSON.stringify(guestBook));
   }catch(e){}
@@ -714,6 +712,7 @@ function load(){
     exploredLocs=d.ex||[];
     achievements=new Set(d.ac||[]);
     bestCombo=d.bc||0;totalTravelDist=d.td||0;dailyStreak=d.ds||0;
+    walkPathPoints=d.wpp||[];
     if(d.pu){PU.magnet.left=d.pu.m||1;PU.radar.left=d.pu.r||1;PU.xray.left=d.pu.x||1}
     const col=new Set(d.tr||[]);
     for(const t of treasures){if(col.has(t.id)){t.c=true;collectedTotal++}}
@@ -963,6 +962,11 @@ function onPos(pos){
 
   // Daily streak check
   checkDailyStreak();
+
+  // Walk path + nearby vibrate + day/night
+  addWalkPoint(lat,lng);
+  checkNearbyVibrate(lat,lng);
+  updateDayNight();
 }
 
 function restartGps(maxAge){
@@ -1122,6 +1126,18 @@ let lastCollectTime=0;
 
 function collectTreasure(t){
   if(t.c)return;
+
+  // Time Attack mode: simplified fast collect
+  if(TA.active){
+    t.c=true;collectedTotal++;
+    const rw=t.ti.reward*t.d;
+    TA.score+=rw;score+=rw;
+    playCollect();haptic(20);
+    showToast(`⚡ ${rw} pts!`);
+    save();updateHUD();renderList();render();
+    return;
+  }
+
   t.c=true;collectedTotal++;
 
   // Weather multiplier
@@ -1142,6 +1158,7 @@ function collectTreasure(t){
 
   // Trivia gate
   if(t.trivia&&Math.random()<.3){
+    save();updateHUD();renderList();render();
     showTriviaGate(t);
     return;
   }
@@ -1180,18 +1197,17 @@ function showTriviaGate(t){
   box.querySelectorAll('button').forEach(b=>{
     b.addEventListener('click',()=>{
       const i=parseInt(b.dataset.i);
+      document.getElementById('modal').classList.remove('show');
       if(i===tr.c){
         playChime();
-        showToast(`✅ Correct! Bonus collected!`);
-        document.getElementById('modal').classList.remove('show');
-        collectTreasure(t);
+        const bonus=t.ti.reward*t.d;
+        score+=bonus;xp+=bonus;
+        while(xp>=XP_PER_LEVEL*level){xp-=XP_PER_LEVEL*level;level++;playLevelUp();showAchievement('⬆️',`Level ${level}!`);haptic([40,40,60])}
+        save();updateHUD();
+        showToast(`✅ Correct! +${bonus} bonus!`);
       }else{
         playError();
-        showToast(`❌ Wrong! Try again next time`);
-        document.getElementById('modal').classList.remove('show');
-        // Still collect but no bonus
-        t.trivia=null;
-        collectTreasure(t);
+        showToast(`❌ Wrong! No bonus this time`);
       }
     });
   });
@@ -1237,25 +1253,6 @@ function startTA(){
       document.getElementById('taTime').textContent='0:00';
     }
   },1000);
-
-  // Override collect for TA scoring
-  const origCollect=collectTreasure;
-  collectTreasure=function(t){
-    if(TA.active){
-      if(!t.c){
-        t.c=true;collectedTotal++;
-        const rw=t.ti.reward*t.d;
-        TA.score+=rw;
-        score+=rw;
-        playCollect();
-        haptic(20);
-        showToast(`⚡ ${rw} pts!`);
-        save();updateHUD();renderList();render();
-        return;
-      }
-    }
-    origCollect.call(this,t);
-  };
 }
 
 // =============================================
@@ -1690,8 +1687,8 @@ function applySinhala(){
 function updateDayNight(){
   const h=new Date().getHours();
   const el=document.getElementById('dnOverlay');
-  if(h<6||h>=19){el.style.background='rgba(5,5,30,0.35)';el.style.zIndex=2}
-  else if(h<7||h>=18){el.style.background='rgba(5,5,30,0.2)';el.style.zIndex=2}
+  if(h<6||h>=19){el.style.background='rgba(5,5,30,0.35)';el.style.zIndex=0}
+  else if(h<7||h>=18){el.style.background='rgba(5,5,30,0.2)';el.style.zIndex=0}
   else{el.style.background='transparent';el.style.zIndex=0}
 }
 
@@ -1857,24 +1854,16 @@ function checkNearbyVibrate(lat,lng){
   for(const t of treasures){
     if(t.c)continue;
     const d=getDist(lat,lng,t.lat,t.lng);
-    if(d<COLLECT_RADIUS&&(!lastVibratedAt[t.id]||Date.now()-lastVibratedAt[t.id]>10000)){
+    if(d<COLLECT_RADIUS*3&&(!lastVibratedAt[t.id]||Date.now()-lastVibratedAt[t.id]>10000)){
       haptic(100);
-      Snd.collect();
+      Snd.chime();
       lastVibratedAt[t.id]=Date.now();
       showToast(`💫 ${t.n} is nearby! (${Math.round(d)}m)`);
     }
   }
 }
 
-// Modify onPos to add walk path + nearby vibrate (patch via interval)
-let _origOnPos=onPos;
-onPos=function(pos){
-  _origOnPos(pos);
-  const {latitude,longitude}=pos.coords;
-  addWalkPoint(latitude,longitude);
-  checkNearbyVibrate(latitude,longitude);
-  updateDayNight();
-};
+// onPos patching done inline inside onPos function directly (see onPos above)
 
 // =============================================
 // START
