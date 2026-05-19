@@ -1251,13 +1251,7 @@ function render(){
     ctx.globalCompositeOperation='source-over';
   }
 
-  // Zone labels
-  for(const z of ZONES){
-    const p=map.latLngToContainerPoint([z.lat,z.lng]);
-    if(p.x<-50||p.x>W+50||p.y<-50||p.y>H+50)continue;
-    ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.shadowColor=z.color;ctx.shadowBlur=10;ctx.fillStyle=z.color;ctx.fillText(`${z.icon} ${z.name}`,p.x,p.y-20);ctx.shadowBlur=0;
-  }
+  // Zone labels now drawn on dedicated zoneBoundCanvas — skip here
 
   // Update 3D markers overlay
   update3DMarkers();
@@ -1600,6 +1594,7 @@ async function openAR(){
       document.getElementById('arIcon').textContent=t.ti.icon;
       updateAR();
     }
+    startARCompass();
   }catch(e){showToast('📷 Camera access denied')}
 }
 
@@ -1612,6 +1607,7 @@ function updateAR(){
 function closeAR(){
   document.getElementById('arOverlay').classList.remove('show');
   if(arStream){arStream.getTracks().forEach(t=>t.stop());arStream=null}
+  stopARCompass();
 }
 
 setInterval(()=>{if(document.getElementById('arOverlay').classList.contains('show'))updateAR()},2000);
@@ -1625,7 +1621,10 @@ function onMapClick(e){
   let nearest=null,nd=30;
   for(const t of treasures){
     if(t.c)continue;
-    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4))continue;
+    const dist=userPos?getDist(userPos.lat,userPos.lng,t.lat,t.lng):Infinity;
+    // Allow clicking explored, near, or within 1500m visible range
+    const clickable=isExplored(t.lat,t.lng)||(userPos&&dist<1500);
+    if(!clickable)continue;
     const tp=map.latLngToContainerPoint([t.lat,t.lng]);
     const d=Math.sqrt((tp.x-cp.x)**2+(tp.y-cp.y)**2);
     if(d<nd){nd=d;nearest=t}
@@ -1857,14 +1856,15 @@ function showAchievement(ico,text){
   clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3000);
 }
 
-// Pulse
+// Pulse — near-treasure glow on fog canvas
 setInterval(()=>{
   if(!userPos||!ctx)return;
   const Z=map.getZoom(),s=map.getSize();
+  ctx.globalCompositeOperation='source-over'; // ensure clean state
   for(const t of treasures){
     if(t.c)continue;
-    if(!isExplored(t.lat,t.lng)&&!(userPos&&getDist(userPos.lat,userPos.lng,t.lat,t.lng)<COLLECT_RADIUS*4))continue;
-    if(getDist(t.lat,t.lng,userPos.lat,userPos.lng)>COLLECT_RADIUS*5)continue;
+    const dist=getDist(t.lat,t.lng,userPos.lat,userPos.lng);
+    if(dist>COLLECT_RADIUS*5)continue; // only pulse very close treasures
     const p=map.latLngToContainerPoint([t.lat,t.lng]);
     if(p.x<0||p.x>s.x||p.y<0||p.y>s.y)continue;
     const pulse=1+.15*Math.sin(Date.now()/300);
@@ -1873,10 +1873,7 @@ setInterval(()=>{
   }
 },2000);
 
-// Weather notification on hour
-setInterval(()=>{
-  const w=getWeather();
-},3600000);
+// Weather widget updates every hour via spawnWeatherParticles interval
 
 // PWA - register service worker for install
 if('serviceWorker' in navigator){
@@ -2115,9 +2112,9 @@ function initZoneBoundaries(){
   zbCanvas=document.getElementById('zoneBoundCanvas');
   zbCtx=zbCanvas.getContext('2d');
   map.on('moveend zoomend',drawZoneBoundaries);
-  drawZoneBoundaries();
-  // Update every 3s for pulse animation
-  setInterval(drawZoneBoundaries,3000);
+  // Smooth animation loop for animated dash
+  function zbLoop(){drawZoneBoundaries();requestAnimationFrame(zbLoop)}
+  zbLoop();
 }
 
 function resizeZoneBound(){
@@ -2272,22 +2269,11 @@ function updateARCompass(){
   arInfo.innerHTML=`${target.n}<br><span style="color:#aaa;font-size:9px">${dir} · ${distStr}</span>`;
 }
 
-// Patch openAR and closeAR to start/stop compass
-const _origOpenAR=openAR;
-async function openAR(){
-  await _origOpenAR();
-  startARCompass();
-}
-const _origCloseAR=closeAR;
-function closeAR(){
-  _origCloseAR();
-  stopARCompass();
-}
+// Patch openAR and closeAR to start/stop compass — done inline below
 
 // =============================================
 // 3D TREASURE MARKERS
 // =============================================
-let markers3d=[];
 let markers3dContainer=null;
 
 function init3DMarkers(){
@@ -2316,7 +2302,6 @@ function update3DMarkers(){
 
     const near=dist<COLLECT_RADIUS*4;
     const mid=dist>=COLLECT_RADIUS*4&&dist<500;
-    const far=dist>=500;
 
     const div=document.createElement('div');
     div.className='t3d-marker'+(near?' near-glow':'');
